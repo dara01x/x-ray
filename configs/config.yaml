@@ -1,0 +1,89 @@
+# Main configuration for the Radiology AI project
+project_name: "radiology-ai"
+version: "1.0.0"
+
+# Data configuration
+data:
+  data_dir: "./data"
+  csv_file: "Data_Entry_2017.csv"
+  image_dirs: ["images_001", "images_002", "images_003", "images_004", "images_005", "images_006", "images_007", "images_008", "images_009", "images_010", "images_011", "images_012"]
+  valid_views: ["PA", "AP"]
+  
+# Disease labels (14 target diseases)
+diseases:
+  labels: [
+    "Atelectasis", "Cardiomegaly", "Effusion", "Infiltration", "Mass",
+    "Nodule", "Pneumonia", "Pneumothorax", "Consolidation", "Edema",
+    "Emphysema", "Fibrosis", "Pleural_Thickening", "Hernia"
+  ]
+
+# Model configuration
+model:
+  backbone: "densenet121"
+  num_classes: 14
+  dropout_rate: 0.6
+  pretrained_weights: "densenet121-res224-all"
+
+# Training configuration
+training:
+  batch_size: 64
+  val_batch_size: 128
+  num_epochs: 100
+  early_stopping_patience: 10
+  
+  # Learning rates
+  backbone_lr: 0.00001  # 1e-5
+  head_lr: 0.001        # 1e-3
+  weight_decay: 0.00001 # 1e-5
+  
+  # Loss function
+  loss:
+    type: "focal"
+    alpha: 0.25
+    gamma: 2.0
+  
+  # Scheduler
+  scheduler:
+    type: "onecycle"
+    pct_start: 0.3
+    div_factor: 25
+    final_div_factor: 10000  # 1e4
+
+# Data preprocessing
+preprocessing:
+  image_size: 224
+  normalize: true
+  clahe:
+    clip_limit: 2.0
+    tile_grid_size: [8, 8]
+
+# Data augmentation
+augmentation:
+  horizontal_flip: 0.5
+  rotation_limit: 15
+  rotation_prob: 0.7
+
+# Validation split
+validation:
+  test_size: 0.2
+  random_state: 42
+  stratify_by_patient: true
+
+# Hardware configuration
+hardware:
+  num_workers: 2
+  pin_memory: true
+  mixed_precision: true
+
+# Monitoring and logging
+monitoring:
+  metric_to_monitor: "macro_auc"
+  monitor_mode: "max"
+  log_frequency: 20
+
+# Output configuration
+output:
+  model_dir: "./outputs/models"
+  results_dir: "./outputs/results"
+  logs_dir: "./outputs/logs"
+  checkpoints_dir: "./outputs/checkpoints"
