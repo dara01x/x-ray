@@ -47,13 +47,13 @@ setup(
             "ipywidgets>=7.0.0",
         ],
     },
-    entry_points={
-        "console_scripts": [
-            "radiology-train=scripts.train:main",
-            "radiology-evaluate=scripts.evaluate:main",
-            "radiology-inference=scripts.inference:main",
-        ],
-    },
+    # entry_points={
+    #     "console_scripts": [
+    #         "x-ray-train=training.cli:train_main",
+    #         "x-ray-evaluate=evaluation.cli:evaluate_main", 
+    #         "x-ray-inference=utils.cli:inference_main",
+    #     ],
+    # },
     include_package_data=True,
     zip_safe=False,
 )

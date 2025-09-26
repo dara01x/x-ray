@@ -10,14 +10,14 @@ from pathlib import Path
 import torch
 
 try:
-    # Try importing as installed package first
-    from radiology_ai.models import ChestXrayModel
-    from radiology_ai.utils import load_config
+    # Try importing as installed package first (package name is x-ray-ai)
+    from models import ChestXrayModel
+    from utils import load_config
 except ImportError:
     # Fallback to local import
     sys.path.append(str(Path(__file__).parent.parent / "src"))
-    from src.models import ChestXrayModel
-    from src.utils import load_config
+    from models import ChestXrayModel
+    from utils import load_config
 
 def benchmark_model_creation():
     """Benchmark model creation time"""
@@ -51,7 +51,7 @@ def benchmark_inference():
     )
     model.eval()
     
-    # Create dummy input
+    # Create dummy input (1 channel grayscale for TorchXRayVision)
     dummy_input = torch.randn(1, 1, 224, 224)
     
     # Warmup

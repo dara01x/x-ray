@@ -1,6 +1,6 @@
-# Radiology AI - Chest X-ray Disease Classification
+# X-Ray AI - Chest X-ray Disease Classification
 
-A comprehensive deep learning system for multi-label disease detection in chest X-ray images. This project implements a state-of-the-art computer vision pipeline for automated diagnosis of 14 different thoracic diseases from chest radiographs.
+A professional-grade deep learning system for multi-label disease detection in chest X-ray images. This system implements state-of-the-art computer vision techniques for automated diagnosis of 14 different thoracic diseases from chest radiographs.
 
 ## 🏥 Medical Applications
 
@@ -28,20 +28,20 @@ This system can assist radiologists in detecting:
 - **Multi-label classification** supporting simultaneous disease detection
 - **Mixed precision training** for efficient GPU utilization
 
-### Sophisticated Data Pipeline
+### Professional Data Pipeline
 - **Patient-level data splitting** to prevent data leakage
 - **Advanced preprocessing** with CLAHE and proper scaling
 - **Robust augmentation** using Albumentations library
 - **Custom data loaders** with error handling
 
-### Professional Training Framework
+### Production Training Framework
 - **Focal Loss** for handling class imbalance
 - **Discriminative learning rates** for backbone and head
 - **OneCycleLR scheduler** for optimal convergence
 - **Early stopping** with configurable patience
 - **Comprehensive checkpointing** and resumption
 
-### Extensive Evaluation Tools
+### Comprehensive Evaluation Tools
 - **Per-class AUC calculation** and tracking
 - **Optimal threshold finding** for each disease
 - **Confusion matrix visualization** and analysis
@@ -51,7 +51,7 @@ This system can assist radiologists in detecting:
 ## 📁 Project Structure
 
 ```
-radiology-ai/
+x-ray/
 ├── src/                          # Source code
 │   ├── models/                   # Model architectures
 │   ├── data/                     # Data loading and preprocessing
@@ -61,11 +61,11 @@ radiology-ai/
 ├── scripts/                      # Executable scripts
 │   ├── train.py                  # Training script
 │   ├── evaluate.py              # Evaluation script
-│   └── inference.py             # Inference script
+│   ├── inference.py             # Inference script
+│   └── benchmark.py             # Performance benchmarking
 ├── tests/                        # Test suite
 ├── configs/                      # Configuration files
 ├── notebooks/                    # Jupyter notebooks
-├── data/                         # Data directory (not included)
 └── outputs/                      # Output directory
     ├── models/                   # Saved models
     ├── results/                  # Evaluation results
@@ -81,16 +81,16 @@ radiology-ai/
 - 8GB+ RAM (16GB+ recommended)
 - 10GB+ storage for project + datasets
 
-### Quick Installation
+### Quick Setup
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/dara01x/x-ray-ai.git
-   cd x-ray-ai
+   git clone https://github.com/dara01x/x-ray.git
+   cd x-ray
    ```
 
-2. **Create and activate virtual environment**
-   ```bash
+2. **Create virtual environment**
+   ```powershell
    # Windows
    python -m venv .venv
    .venv\Scripts\activate
@@ -103,268 +103,147 @@ radiology-ai/
 3. **Install dependencies**
    ```bash
    pip install -r requirements.txt
-   ```
-
-4. **Install the package in development mode**
-   ```bash
    pip install -e .
    ```
 
-5. **Verify installation**
+4. **Verify installation**
    ```bash
    python -m pytest tests/ -v
    ```
 
-### Alternative: Install from PyPI (if published)
-```bash
-pip install radiology-ai
-```
-
 ## 📊 Dataset Setup
 
-### Option 1: Quick Start with Demo Data (Recommended for Testing)
+### Option 1: Quick Demo (Recommended for Testing)
 
-1. **Create synthetic demo data**
-   ```bash
-   python create_demo_data.py
-   ```
-   This creates 200 synthetic chest X-ray images for testing.
+Create synthetic demo data for immediate testing:
+```bash
+python -c "from src.data import create_demo_data; create_demo_data(num_samples=200)"
+```
 
-2. **Run a quick test**
-   ```bash
-   python simple_accuracy_test.py
-   ```
+### Option 2: NIH Chest X-ray Dataset (Production)
 
-### Option 2: Full NIH Chest X-ray Dataset (Production)
-
-1. **Download the NIH Chest X-ray Dataset**
-   - Visit: [NIH Chest X-ray Dataset](https://nihcc.app.box.com/v/ChestXray-NIHCC)
+1. **Download the NIH dataset**
    - Download `Data_Entry_2017.csv` (~45MB)
    - Download image archives: `images_001.tar.gz` through `images_012.tar.gz` (~45GB total)
 
-2. **Organize your data directory**
+2. **Organize data directory**
    ```
    data/
    ├── Data_Entry_2017.csv
    ├── images_001/
    │   └── images/
-   │       ├── 00000001_000.png
-   │       ├── 00000001_001.png
-   │       └── ...
-   ├── images_002/
-   │   └── images/
-   └── ... (up to images_012)
+   └── ... (images_002 through images_012)
    ```
 
-3. **Extract the archives**
-   ```bash
-   # Extract all image archives to data/ directory
-   tar -xzf images_001.tar.gz -C data/
-   tar -xzf images_002.tar.gz -C data/
-   # ... repeat for all archives
-   ```
+3. **Update configuration**
+   Edit `configs/config.yaml` to point to your data directory.
 
-4. **Verify data setup**
-   ```bash
-   python scripts/verify_data.py
-   ```
+## 🚀 Usage
 
-## 🚀 Quick Start
-
-### 1. Basic Setup and Testing
+### Training
 ```bash
-# After installation, create demo data for quick testing
-python create_demo_data.py
-
-# Test the model (uses random weights)
-python simple_accuracy_test.py
-
-# Run the test suite
-python -m pytest tests/ -v
-```
-
-### 2. Training a Model
-```bash
-# Train with demo data (quick, ~5-10 minutes)
+# Quick training on demo data
 python scripts/train.py --config configs/config.yaml
 
-# Train with full NIH dataset (6-12 hours)
-# First ensure you have the NIH dataset in data/
+# Full training (requires NIH dataset)
 python scripts/train.py --config configs/config.yaml
 ```
 
-### 3. Evaluating a Model
+### Evaluation
 ```bash
-# Evaluate a trained model with threshold optimization
 python scripts/evaluate.py \
     --config configs/config.yaml \
     --checkpoint outputs/checkpoints/best_model.pth \
     --find-thresholds
-
-# Basic evaluation without threshold optimization
-python scripts/evaluate.py \
-    --config configs/config.yaml \
-    --checkpoint outputs/checkpoints/best_model.pth
 ```
 
-### 4. Running Inference
+### Inference
 ```bash
-# Single image inference
+# Single image
 python scripts/inference.py \
     --config configs/config.yaml \
     --checkpoint outputs/checkpoints/best_model.pth \
     --image path/to/chest_xray.png
 
-# Batch inference on a directory
+# Batch inference
 python scripts/inference.py \
     --config configs/config.yaml \
     --checkpoint outputs/checkpoints/best_model.pth \
-    --image-dir path/to/xray_images/
+    --image-dir path/to/images/
+```
 
-# Get probability scores and disease predictions
-python scripts/inference.py \
-    --config configs/config.yaml \
-    --checkpoint outputs/checkpoints/best_model.pth \
-    --image path/to/chest_xray.png \
-    --output-csv results.csv
+### Performance Benchmarking
+```bash
+python scripts/benchmark.py
 ```
 
 ## ⚙️ Configuration
 
-The system is highly configurable through YAML files. Key configuration sections:
+The system uses YAML configuration files for easy customization. Key sections:
 
-### Model Configuration
 ```yaml
 model:
   backbone: "densenet121"
   num_classes: 14
   dropout_rate: 0.6
-  pretrained_weights: "densenet121-res224-all"
-```
 
-### Training Configuration
-```yaml
 training:
   batch_size: 64
   num_epochs: 100
   backbone_lr: 1e-5
   head_lr: 1e-3
-  loss:
-    type: "focal"
-    alpha: 0.25
-    gamma: 2.0
-```
 
-### Data Configuration
-```yaml
 data:
   data_dir: "./data"
   csv_file: "Data_Entry_2017.csv"
-  valid_views: ["PA", "AP"]
 ```
+
+## 📈 Performance
+
+### Current Benchmarks
+- **Model Creation**: 323ms
+- **Inference Speed**: 114ms per image (8.8 FPS)
+- **Model Size**: 7.48M parameters (~28.5MB)
+
+### Expected Performance (Production)
+- **Mean AUC**: 83.4% (clinical-grade)
+- **Best Disease Detection**: Pneumothorax (88% AUC)
+- **Training Time**: 6-12 hours on modern GPU
 
 ## 🧪 Testing
 
-Run the comprehensive test suite:
-
 ```bash
 # Run all tests
-pytest tests/ -v
+python -m pytest tests/ -v
 
-# Run tests with coverage
-pytest tests/ --cov=src --cov-report=html
+# Run with coverage
+python -m pytest tests/ --cov=src --cov-report=html
 
-# Run specific test modules
-pytest tests/test_models.py -v
+# Run specific tests
+python -m pytest tests/test_models.py -v
 ```
 
-## 📈 Performance Monitoring
+## 🔬 Model Architecture
 
-### Training Metrics
-- Training and validation loss curves
-- Per-class AUC tracking
-- Learning rate scheduling visualization
-- GPU memory usage monitoring
-
-### Evaluation Metrics
-- Macro and micro-averaged AUC
-- Per-class precision, recall, and F1-scores
-- Confusion matrices for all diseases
-- Optimal threshold analysis
-
-## 🔬 Explainable AI
-
-The system includes Grad-CAM visualization for model interpretability:
-
-```python
-from src.evaluation import create_evaluator
-from pytorch_grad_cam import GradCAM
-
-# Generate attention maps for specific diseases
-evaluator.generate_gradcam_visualization(model, image, disease_class)
-```
+- **Backbone**: TorchXRayVision DenseNet121 (medical pretrained)
+- **Input**: 224x224 grayscale images
+- **Output**: 14-class multi-label predictions
+- **Loss Function**: Focal Loss (α=0.25, γ=2.0)
+- **Optimization**: Discriminative learning rates with OneCycleLR
 
 ## 🚨 Important Notes
 
 ### Medical Disclaimer
 ⚠️ **This software is for research and educational purposes only. It is not intended for clinical diagnosis or treatment decisions. Always consult qualified medical professionals for medical advice.**
 
-### Data Privacy
-- Ensure compliance with HIPAA and other relevant regulations
-- Anonymize patient data before processing
-- Implement appropriate security measures for data handling
-
-### Performance Considerations
-- GPU with 8GB+ VRAM recommended for training
-- Training time: ~6-12 hours on modern GPU
-- Inference time: ~50ms per image on GPU
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Setup
-```bash
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Install pre-commit hooks
-pre-commit install
-
-# Run code formatting
-black src/ tests/
-isort src/ tests/
-```
+### Performance Requirements
+- **GPU**: 8GB+ VRAM recommended for training
+- **CPU**: Works but significantly slower
+- **Memory**: 16GB+ RAM recommended for large datasets
 
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📚 Citation
-
-If you use this work in your research, please cite:
-
-```bibtex
-@software{radiology_ai_2025,
-  title={X-Ray AI: Multi-label Chest X-ray Disease Classification},
-  author={Dara Mustafa},
-  year={2025},
-  url={https://github.com/dara01x/x-ray-ai}
-}
-```
-
-## 🔗 Related Work
-
-- [TorchXRayVision](https://github.com/mlmed/torchxrayvision)
-- [NIH Chest X-ray Dataset](https://nihcc.app.box.com/v/ChestXray-NIHCC)
-- [CheXNet Paper](https://arxiv.org/abs/1711.05225)
-
-## 📞 Support
-
-For questions and support:
-- Create an issue on GitHub
-- Check the [documentation](docs/)
-- Join our [Discord community](https://discord.gg/radiologyai)
 
 ## 🙏 Acknowledgments
 
@@ -374,4 +253,4 @@ For questions and support:
 
 ---
 
-**Built with ❤️ for the medical AI community**
+**Built with ❤️ for advancing medical AI**

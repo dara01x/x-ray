@@ -69,7 +69,7 @@ def setup_logging(log_dir: str, log_level: str = "INFO") -> logging.Logger:
     os.makedirs(log_dir, exist_ok=True)
     
     # Create logger
-    logger = logging.getLogger('radiology_ai')
+    logger = logging.getLogger('x_ray_ai')
     logger.setLevel(getattr(logging, log_level.upper()))
     
     # Create formatter
