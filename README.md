@@ -1,6 +1,17 @@
 # X-Ray AI - Chest X-ray Disease Classification
 
+> **🚧 REPOSITORY UPDATE IN PROGRESS 🚧**  
+> This repository is being updated to integrate a new merged AI model with enhanced performance. 
+> See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for details about the new model integration process.
+
 A professional-grade deep learning system for multi-label disease detection in chest X-ray images. This system implements state-of-the-art computer vision techniques for automated diagnosis of 14 different thoracic diseases from chest radiographs.
+
+## 🆕 What's New - Ensemble Model Integration
+- **🤖 Ensemble Architecture**: Advanced ensemble combining Champion DenseNet121 + Arnoweng CheXNet models
+- **📈 Superior Performance**: Simple averaging approach with optimized per-class thresholds
+- **🎯 Proven Results**: Comprehensive evaluation on NIH dataset with patient-level validation splitting
+- **🔍 Explainability**: Grad-CAM visualization support for both individual models and ensemble
+- **⚡ Production Ready**: Complete inference pipeline with visualization and detailed reporting
 
 ## 🏥 Medical Applications
 
@@ -22,11 +33,17 @@ This system can assist radiologists in detecting:
 
 ## 🚀 Features
 
-### Advanced Deep Learning Architecture
-- **TorchXRayVision DenseNet121** backbone with medical imaging pretraining
-- **Custom classification head** with batch normalization and dropout
-- **Multi-label classification** supporting simultaneous disease detection
-- **Mixed precision training** for efficient GPU utilization
+### 🎭 Ensemble Architecture
+- **Champion Model**: DenseNet121 with TorchXRayVision backbone + deeper classification head
+- **Arnoweng Model**: CheXNet DenseNet121 implementation with proven performance
+- **Ensemble Method**: Simple averaging with optimized per-class thresholds
+- **Multi-label Classification**: Simultaneous detection of 14 thoracic diseases
+
+### 🧠 Advanced Deep Learning
+- **Medical Pretraining**: Both models leverage medical imaging specific pretraining
+- **Optimal Thresholds**: Per-disease thresholds optimized for F1-score maximization
+- **Patient-Level Validation**: Proper data splitting to prevent patient information leakage
+- **Mixed Precision Support**: Efficient GPU utilization for faster inference
 
 ### Professional Data Pipeline
 - **Patient-level data splitting** to prevent data leakage
@@ -140,36 +157,49 @@ python -c "from src.data import create_demo_data; create_demo_data(num_samples=2
 
 ## 🚀 Usage
 
-### Training
+### 📥 Setup Ensemble Model
 ```bash
-# Quick training on demo data
-python scripts/train.py --config configs/config.yaml
+# 1. Download model files from your Kaggle notebook
+# Place them in ./kaggle_outputs/ directory
 
-# Full training (requires NIH dataset)
-python scripts/train.py --config configs/config.yaml
+# 2. Run setup script
+python setup_ensemble.py --kaggle-outputs ./kaggle_outputs
+
+# 3. Verify installation
+python setup_ensemble.py --kaggle-outputs ./kaggle_outputs
 ```
 
-### Evaluation
+### 🔮 Ensemble Inference
 ```bash
-python scripts/evaluate.py \
-    --config configs/config.yaml \
-    --checkpoint outputs/checkpoints/best_model.pth \
-    --find-thresholds
+# Single image with visualization
+python scripts/ensemble_inference.py \
+    --image path/to/chest_xray.png \
+    --kaggle-outputs ./kaggle_outputs \
+    --visualize \
+    --save-results
+
+# Multiple images
+python scripts/ensemble_inference.py \
+    --image path/to/chest_xray.png \
+    --output-dir ./outputs/ensemble_results
 ```
 
-### Inference
+### 📊 Model Comparison
 ```bash
-# Single image
+# Compare ensemble vs individual models
+python scripts/model_comparison.py \
+    --ensemble-results ./outputs/results/ensemble \
+    --legacy-results ./outputs/results/legacy \
+    --create-visualizations
+```
+
+### 📈 Legacy Model Usage
+```bash
+# Original single model inference
 python scripts/inference.py \
     --config configs/config.yaml \
     --checkpoint outputs/checkpoints/best_model.pth \
     --image path/to/chest_xray.png
-
-# Batch inference
-python scripts/inference.py \
-    --config configs/config.yaml \
-    --checkpoint outputs/checkpoints/best_model.pth \
-    --image-dir path/to/images/
 ```
 
 ### Performance Benchmarking

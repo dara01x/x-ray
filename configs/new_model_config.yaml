@@ -1,0 +1,66 @@
+# Configuration for New Merged Model
+# Update this file after integrating your new model
+
+project_name: "new-merged-model-xray"
+version: "2.0.0"
+
+# New Model Configuration
+new_model:
+  name: "merged_model"
+  type: "custom"  # Update based on your model type
+  checkpoint_path: "./outputs/models/new_merged_model/best_model.pth"
+  
+  # Model architecture (update these based on your model)
+  architecture:
+    backbone: "custom_merged"  # Update with actual backbone
+    num_classes: 14  # Or whatever your model outputs
+    input_size: [224, 224]  # Or your model's input size
+    channels: 1  # Grayscale for X-ray
+    
+  # Preprocessing for new model (update if different)
+  preprocessing:
+    resize: [224, 224]
+    normalize: true
+    mean: 0.485  # Update if your model uses different normalization
+    std: 0.229
+    
+# Data configuration (update paths as needed)
+data:
+  data_dir: "./data"
+  
+  # If you have new training data from Kaggle
+  new_data_dir: "./data/new_model_data"
+  
+  # Update if your model uses different data format
+  input_format: "DICOM"  # or "PNG", "JPG", etc.
+  
+# Inference configuration
+inference:
+  batch_size: 32
+  device: "auto"  # Will auto-detect GPU/CPU
+  
+  # Thresholds (update after evaluation)
+  thresholds:
+    # These will be updated after running evaluation
+    Atelectasis: 0.5
+    Cardiomegaly: 0.5
+    Effusion: 0.5
+    # ... add all your classes
+    
+# Performance tracking
+performance:
+  # Update these after evaluating your new model
+  expected_auc: 0.85  # Update with your model's performance
+  inference_time_ms: 100  # Update after benchmarking
+  
+# Output paths
+output:
+  model_dir: "./outputs/models/new_merged_model"
+  results_dir: "./outputs/results/new_merged_model"
+  logs_dir: "./outputs/logs/new_merged_model"
+
+# Legacy model (for comparison)
+legacy_model:
+  enabled: true
+  checkpoint_path: "./outputs/checkpoints/best_model.pth"
+  config_path: "./configs/config.yaml"

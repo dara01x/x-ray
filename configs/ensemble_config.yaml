@@ -1,0 +1,162 @@
+# Ensemble Model Configuration
+# Based on the ab-ensemble.ipynb notebook
+
+project_name: "ensemble-xray-ai"
+version: "2.0.0"
+model_type: "ensemble"
+
+# Ensemble Configuration
+ensemble:
+  name: "champion_arnoweng_ensemble"
+  type: "simple_averaging"  # Averaging the predictions
+  description: "Ensemble of Champion DenseNet121 + Arnoweng CheXNet models"
+  
+  # Model Components
+  models:
+    champion:
+      name: "ChampionModel"
+      architecture: "DenseNet121 + TorchXRayVision"
+      checkpoint: "best_model_all_out_v1.pth"
+      thresholds: "optimal_thresholds_all_out_v1.json"
+      preprocessing: "albumentations"
+      
+    arnoweng:
+      name: "ArnowengDenseNet121" 
+      architecture: "DenseNet121 + CheXNet"
+      checkpoint: "model.pth.tar"
+      preprocessing: "torchvision"
+      
+  # Ensemble Settings
+  combination_method: "average"  # Simple averaging
+  optimal_thresholds: "optimal_thresholds_ensemble_final_v1.json"
+  
+# Disease Labels (14 classes as in notebook)
+diseases:
+  labels: [
+    "Atelectasis", "Cardiomegaly", "Effusion", "Infiltration", "Mass",
+    "Nodule", "Pneumonia", "Pneumothorax", "Consolidation", "Edema", 
+    "Emphysema", "Fibrosis", "Pleural_Thickening", "Hernia"
+  ]
+  num_classes: 14
+
+# Data Configuration
+data:
+  # NIH Dataset paths (as used in notebook)
+  data_dir: "/kaggle/input/data/"  # Update this for your local setup
+  metadata_csv: "Data_Entry_2017.csv"
+  image_dirs: ["images_*"]
+  
+  # Validation split (as in notebook)
+  validation:
+    test_size: 0.2
+    random_state: 42
+    strategy: "patient_level"  # Patient-level split to prevent leakage
+
+# Model Input Configuration
+input:
+  image_size: [224, 224]
+  channels: 1  # Grayscale for champion model
+  color_channels: 3  # RGB for Arnoweng model
+  
+  # Champion Model Preprocessing (Albumentations)
+  champion_preprocessing:
+    resize: [224, 224]
+    clahe:
+      clip_limit: 2.0
+      tile_grid_size: [8, 8]
+    normalize: "to_float"  # Divide by 255
+    
+  # Arnoweng Model Preprocessing (torchvision)
+  arnoweng_preprocessing:
+    resize: 256
+    center_crop: 224
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+
+# Performance Metrics (from notebook evaluation)
+performance:
+  # These should be updated with actual results from your notebook
+  expected_metrics:
+    champion_macro_auc: 0.85  # Update with actual values
+    arnoweng_macro_auc: 0.83  # Update with actual values  
+    ensemble_macro_auc: 0.87  # Update with actual values
+    ensemble_macro_f1: 0.75   # Update with actual values
+    
+  # Inference timing
+  expected_inference_time_ms: 200  # For both models + ensemble
+  
+  # Best performing diseases (update based on your results)
+  strongest_predictions: ["Pneumothorax", "Cardiomegaly", "Effusion"]
+
+# File Paths Configuration
+paths:
+  # Kaggle input paths (update these for your setup)
+  kaggle_input:
+    champion_model: "/kaggle/input/latest5ab/"
+    arnoweng_model: "/kaggle/input/arnoweng-chexnet/CheXNet-master"
+    dataset: "/kaggle/input/data/"
+    
+  # Local paths (for integration)
+  local:
+    models_dir: "./outputs/models/ensemble"
+    checkpoints_dir: "./outputs/checkpoints/ensemble" 
+    results_dir: "./outputs/results/ensemble"
+    kaggle_outputs: "./kaggle_outputs"  # Where to place downloaded files
+    
+  # Expected filenames from Kaggle notebook
+  filenames:
+    champion_checkpoint: "best_model_all_out_v1.pth"
+    champion_thresholds: "optimal_thresholds_all_out_v1.json"
+    arnoweng_checkpoint: "model.pth.tar"
+    ensemble_thresholds: "optimal_thresholds_ensemble_final_v1.json"
+    ensemble_metrics: "final_metrics_ensemble_final_v1.json"
+    classification_report: "classification_report_ensemble_final_v1.txt"
+
+# Inference Configuration
+inference:
+  batch_size: 32
+  device: "auto"  # Auto-detect CUDA/CPU
+  use_optimal_thresholds: true
+  
+  # Visualization settings
+  visualization:
+    create_plots: true
+    save_detailed_results: true
+    show_model_comparison: true
+    
+# Evaluation Configuration  
+evaluation:
+  metrics: ["auc", "f1", "precision", "recall", "accuracy"]
+  per_class_analysis: true
+  confusion_matrix: true
+  
+  # Threshold optimization
+  threshold_optimization:
+    method: "f1_score"  # As used in notebook
+    search_range: [0.01, 0.99]
+    search_step: 0.01
+
+# Hardware Requirements
+hardware:
+  recommended_gpu_memory: "8GB+"
+  min_system_memory: "16GB"
+  storage_requirements: "2GB for models + data"
+  
+# Dependencies (from notebook)
+dependencies:
+  required:
+    - "torch>=1.9.0"
+    - "torchvision>=0.10.0" 
+    - "torchxrayvision>=1.0.0"
+    - "albumentations>=1.0.0"
+    - "scikit-learn>=1.0.0"
+    - "opencv-python>=4.5.0"
+    - "Pillow>=8.0.0"
+    - "matplotlib>=3.3.0"
+    - "pandas>=1.3.0"
+    - "numpy>=1.21.0"
+  
+  optional:
+    - "grad-cam>=1.4.0"  # For explainability
+    - "tqdm>=4.60.0"     # For progress bars

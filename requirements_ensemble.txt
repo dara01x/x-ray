@@ -1,0 +1,39 @@
+# Requirements for Ensemble Model
+# Based on ab-ensemble.ipynb notebook dependencies
+
+# Core PyTorch and Computer Vision
+torch>=1.9.0
+torchvision>=0.10.0
+
+# Medical Imaging Specific
+torchxrayvision>=1.0.0
+
+# Image Processing and Augmentation  
+albumentations>=1.0.0
+opencv-python>=4.5.0
+Pillow>=8.0.0
+
+# Machine Learning and Data Science
+scikit-learn>=1.0.0
+pandas>=1.3.0
+numpy>=1.21.0
+
+# Visualization and Progress
+matplotlib>=3.3.0
+seaborn>=0.11.0
+tqdm>=4.60.0
+
+# Explainable AI (optional)
+grad-cam>=1.4.0
+
+# Configuration and Utilities
+PyYAML>=5.4.0
+pathlib2>=2.3.6
+
+# Jupyter notebook support (if running notebooks)
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Additional utilities from original requirements
+requests>=2.25.0
+typing-extensions>=3.10.0

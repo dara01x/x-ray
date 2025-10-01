@@ -1,0 +1,57 @@
+🎯 DOWNLOAD YOUR ENSEMBLE MODEL FILES
+====================================
+
+The automatic download didn't get the model files. Here are your options:
+
+📋 OPTION 1: MANUAL DOWNLOAD (Easiest)
+=====================================
+
+1. Open your browser
+2. Go to: https://www.kaggle.com/code/sahandsameer/ab-ensemble
+3. Make sure your notebook shows "Committed" (not just saved)
+4. Scroll to the very bottom of the notebook
+5. Look for an "Output" section with files
+6. Download each file manually:
+
+   🔹 best_model_all_out_v1.pth (Champion model ~100-300MB)
+   🔹 optimal_thresholds_all_out_v1.json (Thresholds ~1KB)
+   🔹 model.pth.tar (Arnoweng model ~100-300MB)  
+   🔹 optimal_thresholds_ensemble_final_v1.json (Ensemble thresholds ~1KB)
+   🔹 final_metrics_ensemble_final_v1.json (Metrics ~2KB)
+   🔹 classification_report_ensemble_final_v1.txt (Report ~3KB)
+
+7. Save ALL files to: C:\Users\Dara Mustafa\Desktop\x-ray\kaggle_outputs\
+
+🔧 OPTION 2: KAGGLE API SETUP (For Future Use)
+=============================================
+
+If you want to use the API command later:
+
+1. Go to: https://www.kaggle.com/account
+2. Scroll to "API" section
+3. Click "Create New API Token"
+4. Download kaggle.json
+5. Place it at: C:\Users\Dara Mustafa\.kaggle\kaggle.json
+6. Then run: kaggle kernels output sahandsameer/ab-ensemble -p ./kaggle_outputs
+
+✅ AFTER DOWNLOADING (Either Method):
+===================================
+
+Run this to verify all files are present:
+python quick_check.py
+
+If all files are found, test your ensemble model:
+python scripts/ensemble_inference.py --image your_chest_xray.png --kaggle-outputs ./kaggle_outputs --visualize
+
+🚨 TROUBLESHOOTING:
+==================
+
+If the files aren't in the notebook output:
+- Make sure you ran all cells in your notebook
+- Check that the final cells actually saved the files
+- Look for a "Data" tab in your notebook that might contain the files
+- The large .pth files are the most important (model checkpoints)
+
+💡 The manual download is often more reliable than the API for large files!
+
+🎯 GOAL: Get those 6 files into the kaggle_outputs folder so you can run your amazing ensemble model!
