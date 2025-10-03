@@ -1,0 +1,18 @@
+/* Simple favicon CSS - creates a medical icon */
+.favicon-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #0066cc, #004d99);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.favicon-icon::before {
+    content: "📋";
+}

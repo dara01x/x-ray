@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chest X-ray AI Analyzer | Advanced Medical Imaging</title>
+    <meta name="description" content="Professional AI-powered chest X-ray analysis for disease detection and classification">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-x-ray"></i>
+                    <span>Chest X-ray AI</span>
+                </div>
+                <nav class="nav">
+                    <a href="#home" class="nav-link active" data-section="home">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    <a href="#analyze" class="nav-link" data-section="analyze">
+                        <i class="fas fa-upload"></i> Analyze
+                    </a>
+                    <a href="#info" class="nav-link" data-section="info">
+                        <i class="fas fa-info-circle"></i> About
+                    </a>
+                </nav>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Initializing...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="container">
+                <div class="hero">
+                    <div class="hero-content">
+                        <h1 class="hero-title">
+                            Advanced Chest X-ray Analysis
+                            <span class="gradient-text">Powered by AI</span>
+                        </h1>
+                        <p class="hero-description">
+                            Professional-grade artificial intelligence for chest X-ray disease classification. 
+                            Our ensemble model analyzes 14 different pathological conditions with high accuracy.
+                        </p>
+                        <div class="hero-buttons">
+                            <button class="btn btn-primary" onclick="showSection('analyze')">
+                                <i class="fas fa-upload"></i>
+                                Start Analysis
+                            </button>
+                            <button class="btn btn-secondary" onclick="showSection('info')">
+                                <i class="fas fa-info-circle"></i>
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="medical-icon">
+                            <i class="fas fa-lungs"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Features -->
+                <div class="features">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>AI-Powered Analysis</h3>
+                        <p>Advanced ensemble model combining multiple neural networks for accurate disease detection</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Instant Results</h3>
+                        <p>Get comprehensive analysis results within seconds of uploading your X-ray image</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Secure & Private</h3>
+                        <p>Your medical images are processed securely and not stored permanently on our servers</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Detailed Reports</h3>
+                        <p>Comprehensive analysis with confidence scores and visual interpretations</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analyze Section -->
+        <section id="analyze" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Upload Chest X-ray for Analysis</h2>
+                    <p>Upload a chest X-ray image to get AI-powered disease classification</p>
+                </div>
+                
+                <div class="upload-container">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>Drop your X-ray image here</h3>
+                            <p>Or click to browse files</p>
+                            <div class="upload-formats">
+                                <span>Supported formats: PNG, JPG, JPEG, DCM</span>
+                                <span>Maximum size: 16MB</span>
+                            </div>
+                        </div>
+                        <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.dcm" style="display: none;">
+                    </div>
+                    
+                    <!-- Image Preview -->
+                    <div class="image-preview" id="imagePreview" style="display: none;">
+                        <div class="preview-header">
+                            <h3>Uploaded Image</h3>
+                            <button class="btn btn-small btn-outline" onclick="resetUpload()">
+                                <i class="fas fa-times"></i>
+                                Remove
+                            </button>
+                        </div>
+                        <div class="preview-image">
+                            <img id="previewImg" alt="X-ray preview">
+                        </div>
+                        <div class="preview-info">
+                            <span id="fileName"></span>
+                            <span id="fileSize"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Button -->
+                <div class="analyze-button-container">
+                    <button class="btn btn-primary btn-large" id="analyzeBtn" disabled onclick="analyzeImage()">
+                        <i class="fas fa-microscope"></i>
+                        <span>Analyze X-ray</span>
+                    </button>
+                </div>
+                
+                <!-- Loading -->
+                <div class="loading-container" id="loadingContainer" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <h3>Analyzing X-ray...</h3>
+                    <p>Our AI is examining the image for potential pathologies</p>
+                    <div class="loading-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <span class="progress-text" id="progressText">0%</span>
+                    </div>
+                </div>
+                
+                <!-- Results -->
+                <div class="results-container" id="resultsContainer" style="display: none;">
+                    <div class="results-header">
+                        <h2>Analysis Results</h2>
+                        <div class="results-meta">
+                            <span id="analysisTime"></span>
+                            <span id="modelType"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Summary -->
+                    <div class="results-summary">
+                        <div class="summary-card">
+                            <h3>Key Findings</h3>
+                            <div class="findings-list" id="findingsList"></div>
+                        </div>
+                        <div class="summary-chart">
+                            <canvas id="summaryChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Detailed Results -->
+                    <div class="detailed-results">
+                        <h3>Detailed Analysis</h3>
+                        <div class="results-grid" id="resultsGrid"></div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="results-actions">
+                        <button class="btn btn-primary" onclick="downloadReport()">
+                            <i class="fas fa-download"></i>
+                            Download Report
+                        </button>
+                        <button class="btn btn-secondary" onclick="shareResults()">
+                            <i class="fas fa-share"></i>
+                            Share Results
+                        </button>
+                        <button class="btn btn-outline" onclick="analyzeAnother()">
+                            <i class="fas fa-plus"></i>
+                            Analyze Another
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Info Section -->
+        <section id="info" class="section">
+            <div class="container">
+                <div class="info-content">
+                    <div class="info-header">
+                        <h2>About Chest X-ray AI</h2>
+                        <p>Understanding our AI-powered medical imaging technology</p>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h3><i class="fas fa-microscope"></i> Technology</h3>
+                            <p>Our system uses an ensemble of deep learning models based on DenseNet121 architecture, trained on large-scale chest X-ray datasets to detect 14 different pathological conditions.</p>
+                        </div>
+                        
+                        <div class="info-card">
+                            <h3><i class="fas fa-chart-bar"></i> Accuracy</h3>
+                            <p>The ensemble model achieves high performance across multiple disease categories, with optimized thresholds for each condition to maximize both sensitivity and specificity.</p>
+                        </div>
+                        
+                        <div class="info-card">
+                            <h3><i class="fas fa-user-md"></i> Medical Disclaimer</h3>
+                            <p><strong>Important:</strong> This tool is for educational and research purposes only. Results should not be used for medical diagnosis. Always consult qualified healthcare professionals.</p>
+                        </div>
+                        
+                        <div class="info-card">
+                            <h3><i class="fas fa-list"></i> Detectable Conditions</h3>
+                            <div class="conditions-list">
+                                <span class="condition-tag">Atelectasis</span>
+                                <span class="condition-tag">Cardiomegaly</span>
+                                <span class="condition-tag">Effusion</span>
+                                <span class="condition-tag">Infiltration</span>
+                                <span class="condition-tag">Mass</span>
+                                <span class="condition-tag">Nodule</span>
+                                <span class="condition-tag">Pneumonia</span>
+                                <span class="condition-tag">Pneumothorax</span>
+                                <span class="condition-tag">Consolidation</span>
+                                <span class="condition-tag">Edema</span>
+                                <span class="condition-tag">Emphysema</span>
+                                <span class="condition-tag">Fibrosis</span>
+                                <span class="condition-tag">Pleural Thickening</span>
+                                <span class="condition-tag">Hernia</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="disclaimer-box">
+                        <div class="disclaimer-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Medical Disclaimer</h3>
+                        </div>
+                        <p>
+                            This application is a research tool and educational resource. It is <strong>NOT</strong> intended for clinical diagnosis, treatment, or medical decision-making. The AI predictions should never replace professional medical evaluation by qualified healthcare providers. Always seek professional medical advice for any health concerns.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Chest X-ray AI</h4>
+                    <p>Advanced medical imaging analysis powered by artificial intelligence</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Technology</h4>
+                    <ul>
+                        <li>Deep Learning</li>
+                        <li>Computer Vision</li>
+                        <li>Medical AI</li>
+                        <li>Ensemble Models</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#info">Documentation</a></li>
+                        <li><a href="#info">Medical Disclaimer</a></li>
+                        <li><a href="https://github.com" target="_blank">Source Code</a></li>
+                        <li><a href="#info">Research Paper</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>For technical support or research collaboration inquiries</p>
+                    <div class="social-links">
+                        <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="#" title="Research"><i class="fas fa-graduation-cap"></i></a>
+                        <a href="#" title="Email"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Chest X-ray AI. Research and Educational Use Only.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- Disease Info Modal -->
+    <div class="modal" id="diseaseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="diseaseModalTitle">Disease Information</h3>
+                <button class="modal-close" onclick="closeModal('diseaseModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="diseaseModalBody">
+                <!-- Disease information will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Analysis Report</h3>
+                <button class="modal-close" onclick="closeModal('reportModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="reportModalBody">
+                <!-- Report content will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
