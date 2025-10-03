@@ -134,23 +134,43 @@ def allowed_file(filename):
 
 
 def load_optimal_thresholds():
-    """Load optimal thresholds from CSV file."""
-    thresholds_path = 'kaggle_outputs/optimal_thresholds_ensemble_final.csv'
+    """Load optimal thresholds from CSV or JSON file."""
+    # Check multiple possible locations
+    threshold_paths = [
+        'models/optimal_thresholds_ensemble_final.json',
+        'models/optimal_thresholds_ensemble_final.csv',
+        'kaggle_outputs/optimal_thresholds_ensemble_final.csv',
+        'outputs/optimal_thresholds.json'
+    ]
+    
     thresholds = {}
     
-    if os.path.exists(thresholds_path):
-        try:
-            import pandas as pd
-            df = pd.read_csv(thresholds_path)
-            for _, row in df.iterrows():
-                thresholds[row['Disease']] = float(row['Optimal_Threshold'])
-        except Exception as e:
-            print(f"Error loading thresholds: {e}")
-            # Use default thresholds
-            diseases = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass',
-                       'Nodule', 'Pneumonia', 'Pneumothorax', 'Consolidation', 'Edema',
-                       'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
-            thresholds = {disease: 0.5 for disease in diseases}
+    for thresholds_path in threshold_paths:
+        if os.path.exists(thresholds_path):
+            try:
+                if thresholds_path.endswith('.json'):
+                    with open(thresholds_path, 'r') as f:
+                        thresholds = json.load(f)
+                    print(f"✅ Loaded thresholds from {thresholds_path}")
+                    break
+                elif thresholds_path.endswith('.csv'):
+                    import pandas as pd
+                    df = pd.read_csv(thresholds_path)
+                    for _, row in df.iterrows():
+                        thresholds[row['Disease']] = float(row['Optimal_Threshold'])
+                    print(f"✅ Loaded thresholds from {thresholds_path}")
+                    break
+            except Exception as e:
+                print(f"Error loading thresholds from {thresholds_path}: {e}")
+                continue
+    
+    if not thresholds:
+        # Use default thresholds
+        diseases = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass',
+                   'Nodule', 'Pneumonia', 'Pneumothorax', 'Consolidation', 'Edema',
+                   'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
+        thresholds = {disease: 0.5 for disease in diseases}
+        print("⚠️ Using default thresholds (0.5 for all diseases)")
     
     return thresholds
 
@@ -164,47 +184,74 @@ def initialize_models():
         config_path = 'configs/config.yaml'
         if os.path.exists(config_path):
             config = load_config(config_path)
+            print("✅ Configuration loaded")
         
-        # Try to load ensemble model first
-        champion_checkpoint = 'outputs/models/best_model.pth'
-        arnoweng_checkpoint = 'kaggle_outputs/model.pth.tar'
+        # Check for model files in the models directory
+        champion_checkpoint = 'models/best_model_all_out_v1.pth'
+        arnoweng_checkpoint = 'models/model.pth.tar'
         
+        # Also check alternative locations
+        if not os.path.exists(champion_checkpoint):
+            champion_checkpoint = 'outputs/models/best_model.pth'
+        if not os.path.exists(arnoweng_checkpoint):
+            arnoweng_checkpoint = 'kaggle_outputs/model.pth.tar'
+        
+        print(f"🔍 Looking for models:")
+        print(f"   Champion model: {champion_checkpoint} - {'✅ Found' if os.path.exists(champion_checkpoint) else '❌ Missing'}")
+        print(f"   Arnoweng model: {arnoweng_checkpoint} - {'✅ Found' if os.path.exists(arnoweng_checkpoint) else '❌ Missing'}")
+        
+        # Try to load ensemble model first (best performance)
         if os.path.exists(arnoweng_checkpoint):
             try:
                 thresholds = load_optimal_thresholds()
-                # Convert to JSON format expected by ensemble model
+                
+                # Save thresholds as JSON for ensemble model
                 thresholds_json = 'outputs/optimal_thresholds.json'
+                os.makedirs(os.path.dirname(thresholds_json), exist_ok=True)
                 with open(thresholds_json, 'w') as f:
                     json.dump(thresholds, f)
                 
                 if os.path.exists(champion_checkpoint):
+                    # Load ensemble model
                     ensemble_model = load_ensemble_model(
                         champion_checkpoint=champion_checkpoint,
                         arnoweng_checkpoint=arnoweng_checkpoint,
                         ensemble_thresholds=thresholds_json
                     )
-                    print("✅ Ensemble model loaded successfully")
+                    print("🎉 Ensemble model loaded successfully!")
+                    print(f"📊 Model info: {ensemble_model.get_model_info()}")
                     return True
                 else:
-                    print("Champion model not found, trying single model...")
+                    print("⚠️ Champion model not found, trying single Arnoweng model...")
             except Exception as e:
-                print(f"Failed to load ensemble model: {e}")
+                print(f"❌ Failed to load ensemble model: {e}")
+                traceback.print_exc()
         
-        # Fallback to single model
+        # Fallback to single champion model
         if config and os.path.exists(champion_checkpoint):
-            predictor = ChestXrayPredictor(
-                config_path=config_path,
-                checkpoint_path=champion_checkpoint,
-                thresholds_path='outputs/optimal_thresholds.json'
-            )
-            print("✅ Single model loaded successfully")
-            return True
+            try:
+                thresholds_json = 'outputs/optimal_thresholds.json'
+                thresholds_path = thresholds_json if os.path.exists(thresholds_json) else None
+                predictor = ChestXrayPredictor(
+                    config_path=config_path,
+                    checkpoint_path=champion_checkpoint,
+                    thresholds_path=thresholds_path
+                )
+                print("✅ Single champion model loaded successfully!")
+                return True
+            except Exception as e:
+                print(f"❌ Failed to load champion model: {e}")
+                traceback.print_exc()
         
         print("⚠️ No models available. Running in demo mode.")
+        print("📋 To use real models, ensure these files exist:")
+        print("   - models/best_model_all_out_v1.pth (Champion model)")
+        print("   - models/model.pth.tar (Arnoweng model)")
+        print("   - models/optimal_thresholds_ensemble_final.csv or .json")
         return False
         
     except Exception as e:
-        print(f"Error initializing models: {e}")
+        print(f"❌ Error initializing models: {e}")
         traceback.print_exc()
         return False
 

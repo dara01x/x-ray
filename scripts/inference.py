@@ -9,7 +9,7 @@ import os
 import torch
 import cv2
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # Add src to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -22,7 +22,7 @@ from data import create_transforms
 class ChestXrayPredictor:
     """Predictor class for chest X-ray disease classification."""
     
-    def __init__(self, config_path: str, checkpoint_path: str, thresholds_path: str = None):
+    def __init__(self, config_path: str, checkpoint_path: str, thresholds_path: Optional[str] = None):
         """
         Initialize the predictor.
         
