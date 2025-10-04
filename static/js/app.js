@@ -7,6 +7,7 @@ class ChestXrayApp {
     constructor() {
         this.currentFile = null;
         this.currentResults = null;
+        this.currentChart = null;
         this.diseaseInfo = {};
         
         this.init();
@@ -218,19 +219,29 @@ class ChestXrayApp {
                 body: formData
             });
             
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
+            console.log('Response data:', data);
             
             if (data.success) {
                 this.currentResults = data;
                 this.showResults(data);
                 this.showToast('Analysis Complete', 'X-ray analysis completed successfully', 'success');
             } else {
+                console.error('Analysis failed:', data.error);
                 this.showToast('Analysis Failed', data.error || 'Unknown error occurred', 'error');
             }
             
         } catch (error) {
             console.error('Error analyzing image:', error);
-            this.showToast('Network Error', 'Unable to analyze image. Please try again.', 'error');
+            const errorMessage = error.message || 'Unable to analyze image. Please try again.';
+            this.showToast('Network Error', errorMessage, 'error');
         } finally {
             this.hideLoading();
         }
@@ -275,9 +286,15 @@ class ChestXrayApp {
         this.hideLoading();
         document.getElementById('resultsContainer').style.display = 'block';
         
-        // Update metadata
+        // Update metadata with enhanced information
         document.getElementById('analysisTime').textContent = new Date(data.timestamp).toLocaleString();
-        document.getElementById('modelType').textContent = `Model: ${data.model_type}`;
+        const modelInfo = `${data.model_type}${data.summary ? ` | ${data.summary.total_diseases_checked} diseases analyzed` : ''}`;
+        document.getElementById('modelType').textContent = modelInfo;
+        
+        // Show enhanced summary if available
+        if (data.summary) {
+            this.displayEnhancedSummary(data.summary);
+        }
         
         // Show key findings
         this.displayFindings(data.positive_findings);
@@ -295,8 +312,70 @@ class ChestXrayApp {
         });
     }
     
+    displayEnhancedSummary(summary) {
+        // Add a summary section if it doesn't exist
+        let summaryDiv = document.getElementById('enhancedSummary');
+        if (!summaryDiv) {
+            summaryDiv = document.createElement('div');
+            summaryDiv.id = 'enhancedSummary';
+            summaryDiv.className = 'enhanced-summary';
+            
+            // Insert before results summary
+            const resultsSection = document.querySelector('.results-summary');
+            if (resultsSection && resultsSection.parentNode) {
+                resultsSection.parentNode.insertBefore(summaryDiv, resultsSection);
+            } else {
+                // Fallback: insert before detailed results
+                const detailedResults = document.querySelector('.detailed-results');
+                if (detailedResults && detailedResults.parentNode) {
+                    detailedResults.parentNode.insertBefore(summaryDiv, detailedResults);
+                } else {
+                    // Last resort: append to results container
+                    const resultsContainer = document.getElementById('resultsContainer');
+                    if (resultsContainer) {
+                        resultsContainer.appendChild(summaryDiv);
+                    }
+                }
+            }
+        }
+        
+        const confidenceColor = summary.model_confidence === 'High' ? '#22c55e' : 
+                                summary.model_confidence === 'Moderate' ? '#f59e0b' : '#ef4444';
+        
+        summaryDiv.innerHTML = `
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Analysis Confidence</div>
+                    <div class="summary-value" style="color: ${confidenceColor}">
+                        <i class="fas fa-brain"></i>
+                        ${summary.model_confidence}
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Positive Findings</div>
+                    <div class="summary-value">
+                        <i class="fas fa-search"></i>
+                        ${summary.positive_findings_count} / ${summary.total_diseases_checked}
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Optimal Thresholds</div>
+                    <div class="summary-value" style="color: #22c55e">
+                        <i class="fas fa-check-circle"></i>
+                        ${summary.optimal_thresholds_used ? 'Active' : 'Inactive'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
     displayFindings(findings) {
         const findingsList = document.getElementById('findingsList');
+        if (!findingsList) {
+            console.error('findingsList element not found');
+            return;
+        }
+        
         findingsList.innerHTML = '';
         
         if (findings.length === 0 || (findings.length === 1 && findings[0] === 'No Finding')) {
@@ -335,6 +414,11 @@ class ChestXrayApp {
     
     displayDetailedResults(predictions) {
         const resultsGrid = document.getElementById('resultsGrid');
+        if (!resultsGrid) {
+            console.error('resultsGrid element not found');
+            return;
+        }
+        
         resultsGrid.innerHTML = '';
         
         Object.entries(predictions).forEach(([disease, data]) => {
@@ -344,25 +428,43 @@ class ChestXrayApp {
             const probability = data.probability * 100;
             const isPositive = data.prediction === 1;
             const confidence = data.confidence || 'Medium';
+            const threshold = data.threshold * 100;
             
             let probabilityClass = 'low';
             if (probability > 70) probabilityClass = 'high';
-            else if (probability > 30) probabilityClass = 'medium';
+            else if (probability > 50) probabilityClass = 'medium';
+            
+            // Enhanced card with individual model probabilities if available
+            const individualModelsInfo = data.champion_prob && data.arnoweng_prob ? `
+                <div class="model-breakdown">
+                    <small>Champion: ${(data.champion_prob * 100).toFixed(1)}% | Arnoweng: ${(data.arnoweng_prob * 100).toFixed(1)}%</small>
+                </div>
+            ` : '';
             
             card.innerHTML = `
                 <div class="result-header">
                     <div class="result-disease">${disease.replace('_', ' ')}</div>
                     <div class="result-status ${isPositive ? 'positive' : 'negative'}">
-                        ${isPositive ? 'Positive' : 'Negative'}
+                        <i class="fas ${isPositive ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i>
+                        ${isPositive ? 'Detected' : 'Normal'}
                     </div>
                 </div>
                 <div class="result-probability ${probabilityClass}">
                     ${probability.toFixed(1)}%
                 </div>
                 <div class="result-details">
-                    Confidence: ${confidence} | Threshold: ${(data.threshold * 100).toFixed(1)}%
+                    <div class="confidence-info">
+                        <span class="confidence-label">Confidence:</span>
+                        <span class="confidence-value ${confidence.toLowerCase().replace(' ', '-')}">${confidence}</span>
+                    </div>
+                    <div class="threshold-info">
+                        <span class="threshold-label">Threshold:</span>
+                        <span class="threshold-value">${threshold.toFixed(1)}%</span>
+                    </div>
                 </div>
+                ${individualModelsInfo}
                 <div class="confidence-bar">
+                    <div class="threshold-marker" style="left: ${threshold}%"></div>
                     <div class="confidence-fill" style="width: ${probability}%; background: ${this.getConfidenceColor(probability)}"></div>
                 </div>
             `;
@@ -382,36 +484,64 @@ class ChestXrayApp {
     }
     
     createSummaryChart(predictions) {
-        const ctx = document.getElementById('summaryChart').getContext('2d');
+        const canvas = document.getElementById('summaryChart');
+        if (!canvas) {
+            console.error('summaryChart canvas element not found');
+            return;
+        }
         
-        // Prepare data for doughnut chart
-        const positiveCount = Object.values(predictions).filter(p => p.prediction === 1).length;
-        const negativeCount = Object.values(predictions).length - positiveCount;
-        
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Negative', 'Positive'],
-                datasets: [{
-                    data: [negativeCount, positiveCount],
-                    backgroundColor: ['#10b981', '#ef4444'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Findings Summary'
+        try {
+            const ctx = canvas.getContext('2d');
+            
+            // Prepare data for doughnut chart
+            const positiveCount = Object.values(predictions).filter(p => p.prediction === 1).length;
+            const negativeCount = Object.values(predictions).length - positiveCount;
+            
+            // Destroy existing chart if it exists
+            if (this.currentChart) {
+                this.currentChart.destroy();
+            }
+            
+            this.currentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Normal', 'Detected'],
+                    datasets: [{
+                        data: [negativeCount, positiveCount],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Findings Summary'
+                        }
                     }
                 }
+            });
+        } catch (error) {
+            console.error('Error creating chart:', error);
+            // Fallback: show text summary
+            const chartContainer = canvas.parentNode;
+            if (chartContainer) {
+                const positiveCount = Object.values(predictions).filter(p => p.prediction === 1).length;
+                const negativeCount = Object.values(predictions).length - positiveCount;
+                
+                chartContainer.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h4>Findings Summary</h4>
+                        <p>Normal: ${negativeCount} | Detected: ${positiveCount}</p>
+                    </div>
+                `;
             }
-        });
+        }
     }
     
     showDiseaseInfo(disease) {

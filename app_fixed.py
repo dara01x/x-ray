@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-Advanced Chest X-ray AI Web Application
-Professional-grade Flask web application for chest X-ray disease classification
+Fixed X-Ray AI Web Application
+- Stable server configuration
+- Enhanced error handling
+- Better connection management
 """
 
 import os
@@ -29,13 +31,14 @@ try:
     from utils import load_config, get_device
     from models.ensemble_model import load_ensemble_model
     from scripts.inference import ChestXrayPredictor
+    print("✅ All modules imported successfully")
 except ImportError as e:
     print(f"Import error: {e}")
     print("Make sure all required modules are available")
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
+app.config['SECRET_KEY'] = 'your-secret-key-here'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Enable CORS for API endpoints
@@ -127,15 +130,12 @@ DISEASE_INFO = {
     }
 }
 
-
 def allowed_file(filename):
     """Check if file extension is allowed."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 def load_optimal_thresholds():
     """Load optimal thresholds from CSV or JSON file."""
-    # Check multiple possible locations
     threshold_paths = [
         'models/optimal_thresholds_ensemble_final.json',
         'models/optimal_thresholds_ensemble_final.csv',
@@ -165,7 +165,6 @@ def load_optimal_thresholds():
                 continue
     
     if not thresholds:
-        # Use default thresholds
         diseases = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass',
                    'Nodule', 'Pneumonia', 'Pneumothorax', 'Consolidation', 'Edema',
                    'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
@@ -174,23 +173,19 @@ def load_optimal_thresholds():
     
     return thresholds
 
-
 def initialize_models():
     """Initialize the AI models."""
     global predictor, ensemble_model, config
     
     try:
-        # Load configuration
         config_path = 'configs/config.yaml'
         if os.path.exists(config_path):
             config = load_config(config_path)
             print("✅ Configuration loaded")
         
-        # Check for model files in the models directory
         champion_checkpoint = 'models/best_model_all_out_v1.pth'
         arnoweng_checkpoint = 'models/model.pth.tar'
         
-        # Also check alternative locations
         if not os.path.exists(champion_checkpoint):
             champion_checkpoint = 'outputs/models/best_model.pth'
         if not os.path.exists(arnoweng_checkpoint):
@@ -200,19 +195,16 @@ def initialize_models():
         print(f"   Champion model: {champion_checkpoint} - {'✅ Found' if os.path.exists(champion_checkpoint) else '❌ Missing'}")
         print(f"   Arnoweng model: {arnoweng_checkpoint} - {'✅ Found' if os.path.exists(arnoweng_checkpoint) else '❌ Missing'}")
         
-        # Try to load ensemble model first (best performance)
         if os.path.exists(arnoweng_checkpoint):
             try:
                 thresholds = load_optimal_thresholds()
                 
-                # Save thresholds as JSON for ensemble model
                 thresholds_json = 'outputs/optimal_thresholds.json'
                 os.makedirs(os.path.dirname(thresholds_json), exist_ok=True)
                 with open(thresholds_json, 'w') as f:
                     json.dump(thresholds, f)
                 
                 if os.path.exists(champion_checkpoint):
-                    # Load ensemble model
                     ensemble_model = load_ensemble_model(
                         champion_checkpoint=champion_checkpoint,
                         arnoweng_checkpoint=arnoweng_checkpoint,
@@ -227,7 +219,6 @@ def initialize_models():
                 print(f"❌ Failed to load ensemble model: {e}")
                 traceback.print_exc()
         
-        # Fallback to single champion model
         if config and os.path.exists(champion_checkpoint):
             try:
                 thresholds_json = 'outputs/optimal_thresholds.json'
@@ -244,24 +235,18 @@ def initialize_models():
                 traceback.print_exc()
         
         print("⚠️ No models available. Running in demo mode.")
-        print("📋 To use real models, ensure these files exist:")
-        print("   - models/best_model_all_out_v1.pth (Champion model)")
-        print("   - models/model.pth.tar (Arnoweng model)")
-        print("   - models/optimal_thresholds_ensemble_final.csv or .json")
         return False
         
     except Exception as e:
-        print(f"❌ Error initializing models: {e}")
+        print(f"❌ Model initialization error: {e}")
         traceback.print_exc()
         return False
-
 
 def process_image(image_path: str) -> Dict:
     """Process uploaded image and return predictions."""
     try:
         print(f"🔍 Processing image: {image_path}")
         
-        # Check if image file exists and is readable
         if not os.path.exists(image_path):
             print(f"❌ Image file not found: {image_path}")
             return {
@@ -269,7 +254,6 @@ def process_image(image_path: str) -> Dict:
                 'error': 'Image file not found'
             }
         
-        # Use ensemble model if available
         if ensemble_model:
             print("📊 Using ensemble model for prediction...")
             try:
@@ -277,7 +261,6 @@ def process_image(image_path: str) -> Dict:
                 print(f"📈 Ensemble prediction result: {result is not None}")
                 
                 if result:
-                    # Format results for web display
                     predictions = {}
                     positive_count = 0
                     for disease, pred_data in result['predictions'].items():
@@ -288,7 +271,6 @@ def process_image(image_path: str) -> Dict:
                         if is_positive:
                             positive_count += 1
                         
-                        # Calculate detailed confidence based on distance from threshold
                         prob_distance = abs(ensemble_prob - threshold_used)
                         if prob_distance > 0.3:
                             confidence = 'Very High'
@@ -308,7 +290,6 @@ def process_image(image_path: str) -> Dict:
                             'arnoweng_prob': pred_data['arnoweng_prob']
                         }
                     
-                    # Get positive findings
                     positive_findings = ensemble_model.get_positive_predictions(result)
                     if not positive_findings:
                         positive_findings = ['No Finding']
@@ -338,9 +319,7 @@ def process_image(image_path: str) -> Dict:
                 print(f"❌ Ensemble model error: {e}")
                 import traceback
                 traceback.print_exc()
-                # Fall through to single model or demo mode
         
-        # Use single model if available
         elif predictor:
             print("📊 Using single champion model for prediction...")
             try:
@@ -356,7 +335,6 @@ def process_image(image_path: str) -> Dict:
                         probability = pred_data['probability']
                         threshold = pred_data['threshold']
                         
-                        # Calculate confidence based on distance from threshold
                         prob_distance = abs(probability - threshold)
                         if prob_distance > 0.3:
                             confidence = 'Very High'
@@ -403,7 +381,6 @@ def process_image(image_path: str) -> Dict:
                 import traceback
                 traceback.print_exc()
         
-        # Demo mode - return mock results
         print("⚠️ Running in demo mode - no real models available")
         return {
             'success': True,
@@ -427,7 +404,6 @@ def process_image(image_path: str) -> Dict:
             'error': f'Internal error: {str(e)}'
         }
 
-
 def generate_demo_predictions():
     """Generate demo predictions for testing."""
     diseases = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass',
@@ -446,12 +422,10 @@ def generate_demo_predictions():
     
     return predictions
 
-
 @app.route('/')
 def index():
-    """Main page."""
+    """Serve the main application page."""
     return render_template('index.html')
-
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -467,17 +441,14 @@ def upload_file():
         if not allowed_file(file.filename):
             return jsonify({'success': False, 'error': 'Invalid file type. Please upload PNG, JPG, JPEG, or DCM files.'}), 400
         
-        # Generate unique filename
         filename = secure_filename(file.filename or 'unknown.jpg')
         unique_id = str(uuid.uuid4())
         file_extension = filename.rsplit('.', 1)[1].lower()
         unique_filename = f"{unique_id}.{file_extension}"
         file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
         
-        # Save file
         file.save(file_path)
         
-        # Validate image
         try:
             with Image.open(file_path) as img:
                 img.verify()
@@ -485,16 +456,13 @@ def upload_file():
             os.remove(file_path)
             return jsonify({'success': False, 'error': 'Invalid image file'}), 400
         
-        # Process image
         results = process_image(file_path)
         
         if results['success']:
-            # Add file info to results for display
             results['unique_id'] = unique_id
             results['filename'] = filename
             results['timestamp'] = datetime.now().isoformat()
             
-            # Clean up uploaded file after processing
             try:
                 os.remove(file_path)
             except Exception as e:
@@ -502,7 +470,6 @@ def upload_file():
             
             return jsonify(results)
         else:
-            # Clean up file on error
             try:
                 os.remove(file_path)
             except Exception as e:
@@ -516,18 +483,10 @@ def upload_file():
         traceback.print_exc()
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
-
 @app.route('/api/disease-info')
 def get_disease_info():
     """Get disease information."""
     return jsonify(DISEASE_INFO)
-
-
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    """Serve uploaded files."""
-    return send_from_directory(UPLOAD_FOLDER, filename)
-
 
 @app.route('/api/status')
 def get_status():
@@ -547,27 +506,18 @@ def get_status():
         'version': '1.0.0'
     })
 
-
 @app.errorhandler(413)
 def too_large(e):
     """Handle file too large error."""
     return jsonify({'success': False, 'error': 'File too large. Maximum size is 16MB.'}), 413
-
-
-@app.errorhandler(404)
-def not_found(e):
-    """Handle 404 errors."""
-    return render_template('index.html')
-
 
 @app.errorhandler(500)
 def internal_error(e):
     """Handle 500 errors."""
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
-
 if __name__ == '__main__':
-    print("🔬 Initializing Chest X-ray AI Web Application...")
+    print("🔬 Initializing Fixed Chest X-ray AI Web Application...")
     print("-" * 50)
     
     # Initialize models
@@ -578,14 +528,19 @@ if __name__ == '__main__':
     else:
         print("⚠️ Running in demo mode - no trained models available")
     
-    print("\n🚀 Starting web server...")
+    print("\n🚀 Starting stable web server...")
     print("📱 Access the application at: http://localhost:5000")
     print("-" * 50)
     
-    # Run the app
-    app.run(
-        host='0.0.0.0',
-        port=5000,
-        debug=False,  # Disabled for stability
-        threaded=True
-    )
+    # Run with stable configuration
+    try:
+        app.run(
+            host='127.0.0.1',  # More specific binding
+            port=5000,
+            debug=False,
+            threaded=True,
+            use_reloader=False  # Disable auto-reload for stability
+        )
+    except Exception as e:
+        print(f"❌ Server failed to start: {e}")
+        print("Try a different port or check if another service is using port 5000")
