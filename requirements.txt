@@ -1,38 +1,56 @@
-# Core ML libraries
+# X-ray AI Web Application - Complete Requirements
+# Install with: pip install -r requirements.txt
+
+# ========================================
+# CORE DEPENDENCIES (Required for web app)
+# ========================================
+
+# Python Web Framework - REQUIRED
+Flask>=2.0.0,<3.0.0
+Flask-CORS>=3.0.0,<5.0.0
+Werkzeug>=2.0.0,<3.0.0
+
+# Core ML libraries - REQUIRED
 torch>=2.0.0,<3.0.0
 torchvision>=0.15.0,<1.0.0
 numpy>=1.21.0,<2.0.0
 pandas>=1.3.0,<3.0.0
 scikit-learn>=1.0.0,<2.0.0
 
-# Computer Vision and Medical Imaging
+# Computer Vision and Medical Imaging - REQUIRED
 opencv-python>=4.5.0,<5.0.0
 albumentations>=1.3.0,<2.0.0
 torchxrayvision>=1.0.0
-pytorch-grad-cam>=1.4.0
+Pillow>=8.0.0,<11.0.0
 
-# Visualization
+# Configuration and Data Processing - REQUIRED
+PyYAML>=6.0,<7.0.0
+requests>=2.25.0,<3.0.0
+tqdm>=4.60.0
+
+# ========================================
+# VISUALIZATION (for results display)
+# ========================================
 matplotlib>=3.5.0,<4.0.0
 seaborn>=0.11.0,<1.0.0
 
-# Image processing
-Pillow>=8.0.0,<11.0.0
+# ========================================
+# MEDICAL IMAGING SUPPORT
+# ========================================
+pydicom>=2.0.0,<3.0.0  # For DICOM X-ray files
 
-# Progress bars and utilities
-tqdm>=4.60.0
+# ========================================
+# AI EXPLAINABILITY (optional but useful)
+# ========================================
+pytorch-grad-cam>=1.4.0  # For heatmap visualizations
 
-# Configuration
-PyYAML>=6.0,<7.0.0
+# ========================================
+# PYTHON UTILITIES
+# ========================================
+setuptools>=60.0.0
 
-# Testing
+# ========================================
+# TESTING (for development)
+# ========================================
 pytest>=7.0.0,<8.0.0
 pytest-cov>=4.0.0,<5.0.0
-
-# Optional dependencies
-jupyter>=1.0.0  # Optional: for notebook development
-wandb>=0.15.0   # Optional: for experiment tracking
-
-# Development tools (optional)
-black>=22.0.0   # Code formatting
-isort>=5.0.0    # Import sorting
-flake8>=4.0.0   # Linting
