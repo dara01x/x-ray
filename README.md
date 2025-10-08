@@ -92,6 +92,12 @@ pip install -r requirements.txt
 - **Port 5000 in use**: The app will suggest alternative ports
 - **CUDA errors**: The app will automatically fall back to CPU mode
 - **Permission errors**: Try running with administrator/sudo privileges
+- **pytorch-grad-cam not found**: This is optional for heatmaps, app works without it
+
+**Optional: Install heatmap visualization (may not work with Python 3.13+):**
+```bash
+pip install pytorch-grad-cam
+```
 
 **App won't start?**
 - Make sure Python 3.8+ is installed

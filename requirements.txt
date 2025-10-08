@@ -40,9 +40,9 @@ seaborn>=0.11.0
 pydicom>=2.0.0  # For DICOM X-ray files
 
 # ========================================
-# AI EXPLAINABILITY (optional but useful)
+# AI EXPLAINABILITY (optional - install separately if needed)
 # ========================================
-pytorch-grad-cam>=1.4.0  # For heatmap visualizations
+# pytorch-grad-cam>=1.4.0  # For heatmap visualizations (may not work with Python 3.13+)
 
 # ========================================
 # PYTHON UTILITIES
