@@ -10,34 +10,34 @@ Flask>=2.0.0,<3.0.0
 Flask-CORS>=3.0.0,<5.0.0
 Werkzeug>=2.0.0,<3.0.0
 
-# Core ML libraries - REQUIRED
-torch>=2.0.0,<3.0.0
-torchvision>=0.15.0,<1.0.0
-numpy>=1.21.0,<2.0.0
-pandas>=1.3.0,<3.0.0
-scikit-learn>=1.0.0,<2.0.0
+# Core ML libraries - REQUIRED (using pre-compiled wheels)
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.21.0
+pandas>=1.3.0
+scikit-learn>=1.0.0
 
 # Computer Vision and Medical Imaging - REQUIRED
-opencv-python>=4.5.0,<5.0.0
-albumentations>=1.3.0,<2.0.0
+opencv-python>=4.5.0
+albumentations>=1.3.0
 torchxrayvision>=1.0.0
-Pillow>=8.0.0,<11.0.0
+Pillow>=8.0.0
 
 # Configuration and Data Processing - REQUIRED
-PyYAML>=6.0,<7.0.0
-requests>=2.25.0,<3.0.0
+PyYAML>=6.0
+requests>=2.25.0
 tqdm>=4.60.0
 
 # ========================================
 # VISUALIZATION (for results display)
 # ========================================
-matplotlib>=3.5.0,<4.0.0
-seaborn>=0.11.0,<1.0.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
 
 # ========================================
 # MEDICAL IMAGING SUPPORT
 # ========================================
-pydicom>=2.0.0,<3.0.0  # For DICOM X-ray files
+pydicom>=2.0.0  # For DICOM X-ray files
 
 # ========================================
 # AI EXPLAINABILITY (optional but useful)
@@ -52,5 +52,5 @@ setuptools>=60.0.0
 # ========================================
 # TESTING (for development)
 # ========================================
-pytest>=7.0.0,<8.0.0
-pytest-cov>=4.0.0,<5.0.0
+pytest>=7.0.0
+pytest-cov>=4.0.0

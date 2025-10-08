@@ -59,6 +59,26 @@ The AI can identify these 14 conditions:
 
 ## 🔧 Troubleshooting
 
+### If installation fails with "metadata-generation-failed" or compiler errors:
+
+### If installation fails with "metadata-generation-failed" or compiler errors:
+
+**For Python 3.13+ users:**
+```bash
+# Install PyTorch first (it handles dependencies better)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# Then install other requirements
+pip install -r requirements.txt
+```
+
+**Alternative - force pre-compiled packages only:**
+```bash
+# Upgrade pip and install pre-compiled packages
+python -m pip install --upgrade pip
+pip install --only-binary=all -r requirements.txt
+```
+
 ### If installation fails:
 ```bash
 # Upgrade pip first
