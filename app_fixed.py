@@ -183,19 +183,34 @@ def initialize_models():
             config = load_config(config_path)
             print("✅ Configuration loaded")
         
-        champion_checkpoint = 'models/best_model_all_out_v1.pth'
-        arnoweng_checkpoint = 'models/model.pth.tar'
+        # Define all possible model paths
+        model_paths = {
+            'champion_primary': 'models/best_model_all_out_v1.pth',
+            'champion_backup': 'outputs/models/best_model.pth',
+            'champion_kaggle': 'kaggle_outputs/best_model_all_out_v1.pth',
+            'arnoweng_primary': 'models/model.pth.tar',
+            'arnoweng_kaggle': 'kaggle_outputs/model.pth.tar'
+        }
         
-        if not os.path.exists(champion_checkpoint):
-            champion_checkpoint = 'outputs/models/best_model.pth'
-        if not os.path.exists(arnoweng_checkpoint):
-            arnoweng_checkpoint = 'kaggle_outputs/model.pth.tar'
+        # Check which models exist
+        available_models = {}
+        for key, path in model_paths.items():
+            if os.path.exists(path):
+                available_models[key] = path
         
-        print(f"🔍 Looking for models:")
-        print(f"   Champion model: {champion_checkpoint} - {'✅ Found' if os.path.exists(champion_checkpoint) else '❌ Missing'}")
-        print(f"   Arnoweng model: {arnoweng_checkpoint} - {'✅ Found' if os.path.exists(arnoweng_checkpoint) else '❌ Missing'}")
+        print(f"🔍 Model availability check:")
+        for key, path in model_paths.items():
+            status = "✅ Found" if key in available_models else "❌ Missing"
+            print(f"   {key}: {path} - {status}")
         
-        if os.path.exists(arnoweng_checkpoint):
+        # Try to load ensemble model (best option)
+        champion_path = (available_models.get('champion_kaggle') or 
+                        available_models.get('champion_primary') or 
+                        available_models.get('champion_backup'))
+        arnoweng_path = (available_models.get('arnoweng_kaggle') or 
+                        available_models.get('arnoweng_primary'))
+        
+        if champion_path and arnoweng_path:
             try:
                 thresholds = load_optimal_thresholds()
                 
@@ -204,43 +219,64 @@ def initialize_models():
                 with open(thresholds_json, 'w') as f:
                     json.dump(thresholds, f)
                 
-                if os.path.exists(champion_checkpoint):
-                    ensemble_model = load_ensemble_model(
-                        champion_checkpoint=champion_checkpoint,
-                        arnoweng_checkpoint=arnoweng_checkpoint,
-                        ensemble_thresholds=thresholds_json
-                    )
-                    print("🎉 Ensemble model loaded successfully!")
-                    print(f"📊 Model info: {ensemble_model.get_model_info()}")
-                    return True
-                else:
-                    print("⚠️ Champion model not found, trying single Arnoweng model...")
+                ensemble_model = load_ensemble_model(
+                    champion_checkpoint=champion_path,
+                    arnoweng_checkpoint=arnoweng_path,
+                    ensemble_thresholds=thresholds_json
+                )
+                print("🎉 Ensemble model loaded successfully!")
+                print(f"📊 Champion model: {champion_path}")
+                print(f"📊 Arnoweng model: {arnoweng_path}")
+                print(f"📊 Model info: {ensemble_model.get_model_info()}")
+                return 'ensemble'
             except Exception as e:
                 print(f"❌ Failed to load ensemble model: {e}")
                 traceback.print_exc()
         
-        if config and os.path.exists(champion_checkpoint):
+        # Try single champion model
+        if config and champion_path:
             try:
                 thresholds_json = 'outputs/optimal_thresholds.json'
                 thresholds_path = thresholds_json if os.path.exists(thresholds_json) else None
                 predictor = ChestXrayPredictor(
                     config_path=config_path,
-                    checkpoint_path=champion_checkpoint,
+                    checkpoint_path=champion_path,
                     thresholds_path=thresholds_path
                 )
                 print("✅ Single champion model loaded successfully!")
-                return True
+                print(f"📊 Model path: {champion_path}")
+                return 'single'
             except Exception as e:
                 print(f"❌ Failed to load champion model: {e}")
                 traceback.print_exc()
         
-        print("⚠️ No models available. Running in demo mode.")
-        return False
+        # Show detailed error information for demo mode
+        print("\n" + "="*60)
+        print("⚠️ RUNNING IN DEMO MODE - LIMITED FUNCTIONALITY")
+        print("="*60)
+        print("🚫 NO TRAINED MODELS AVAILABLE")
+        print("\nWhat this means:")
+        print("✅ Web interface will work")
+        print("✅ File uploads will work") 
+        print("❌ AI predictions will NOT work")
+        print("❌ Disease classification will NOT work")
+        print("❌ Medical insights will NOT be generated")
+        
+        print("\n📥 TO ENABLE FULL FUNCTIONALITY:")
+        print("1. Obtain trained model files from original training environment")
+        print("2. Place them in the correct directories:")
+        print("   - Champion model → models/best_model_all_out_v1.pth")
+        print("   - Arnoweng model → models/model.pth.tar")
+        print("   - Or in kaggle_outputs/ directory")
+        print("3. Run: python verify_setup.py")
+        print("4. Look for success message: '🎉 Setup complete!'")
+        print("="*60)
+        return 'demo'
         
     except Exception as e:
         print(f"❌ Model initialization error: {e}")
         traceback.print_exc()
-        return False
+        return 'error'
 
 def process_image(image_path: str) -> Dict:
     """Process uploaded image and return predictions."""
@@ -392,7 +428,9 @@ def process_image(image_path: str) -> Dict:
                 'positive_findings_count': 0,
                 'model_confidence': 'Demo',
                 'optimal_thresholds_used': False
-            }
+            },
+            'demo_mode': True,
+            'warning': 'This is DEMO MODE - no actual AI analysis performed. To enable real predictions, install trained model files.'
         }
             
     except Exception as e:
@@ -491,19 +529,53 @@ def get_disease_info():
 @app.route('/api/status')
 def get_status():
     """Get application status."""
-    model_status = 'No models loaded'
+    global ensemble_model, predictor
+    
+    # Determine model status
     if ensemble_model:
         model_status = 'Ensemble model active'
+        model_type = 'ensemble'
+        functionality = 'full'
     elif predictor:
         model_status = 'Single model active'
+        model_type = 'single'
+        functionality = 'full'
     else:
-        model_status = 'Demo mode'
+        model_status = 'Demo mode - no trained models'
+        model_type = 'demo'
+        functionality = 'limited'
+    
+    # Check for missing model files
+    missing_files = []
+    model_paths = {
+        'Champion model (primary)': 'models/best_model_all_out_v1.pth',
+        'Champion model (backup)': 'outputs/models/best_model.pth',
+        'Champion model (kaggle)': 'kaggle_outputs/best_model_all_out_v1.pth',
+        'Arnoweng model (primary)': 'models/model.pth.tar',
+        'Arnoweng model (kaggle)': 'kaggle_outputs/model.pth.tar'
+    }
+    
+    for name, path in model_paths.items():
+        if not os.path.exists(path):
+            missing_files.append({'name': name, 'path': path})
     
     return jsonify({
         'status': 'running',
         'model_status': model_status,
+        'model_type': model_type,
+        'functionality': functionality,
         'device': str(get_device()) if 'get_device' in globals() else 'Unknown',
-        'version': '1.0.0'
+        'version': '1.0.0',
+        'missing_files': missing_files,
+        'demo_mode': functionality == 'limited',
+        'capabilities': {
+            'web_interface': True,
+            'file_upload': True,
+            'ai_predictions': functionality == 'full',
+            'disease_classification': functionality == 'full',
+            'confidence_scoring': functionality == 'full',
+            'medical_insights': functionality == 'full'
+        }
     })
 
 @app.errorhandler(413)
@@ -521,12 +593,21 @@ if __name__ == '__main__':
     print("-" * 50)
     
     # Initialize models
-    model_loaded = initialize_models()
+    model_status = initialize_models()
     
-    if model_loaded:
-        print("✅ Models initialized successfully")
+    if model_status == 'ensemble':
+        print("✅ FULL FUNCTIONALITY: Ensemble models loaded successfully")
+        print("🎯 AI predictions, disease classification, and medical insights available")
+    elif model_status == 'single':
+        print("✅ FULL FUNCTIONALITY: Single model loaded successfully")  
+        print("🎯 AI predictions, disease classification, and medical insights available")
+    elif model_status == 'demo':
+        print("⚠️ LIMITED FUNCTIONALITY: Running in demo mode")
+        print("❌ AI predictions and medical analysis NOT available")
+        print("📋 See startup messages above for instructions to enable full functionality")
     else:
-        print("⚠️ Running in demo mode - no trained models available")
+        print("❌ ERROR: Failed to initialize application")
+        print("🔧 Check error messages above and ensure dependencies are installed")
     
     print("\n🚀 Starting stable web server...")
     print("📱 Access the application at: http://localhost:5000")
