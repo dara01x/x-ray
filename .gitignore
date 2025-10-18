@@ -135,11 +135,15 @@ outputs/
 !outputs/.gitkeep
 logs/
 *.pth
+!models/*.pth
 *.pkl
 *.h5
 *.hdf5
 *.json
 !configs/*.json
+!models/*.json
+*.tar
+!models/*.tar
 
 # IDE
 .vscode/

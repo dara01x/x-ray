@@ -24,18 +24,19 @@ python app.py
 2. **Upload** a chest X-ray image (PNG, JPG, JPEG, DCM)  
 3. **Get** instant AI analysis with disease predictions!
 
-## 🎯 Two Modes
+## 🎯 Ready to Use
 
-- **🤖 Full AI Mode**: Real disease detection (needs model files)
-- **🎮 Demo Mode**: Interface testing (works without model files)
+- **🤖 Full AI Mode**: Real disease detection with trained models included!
+- **✨ No Setup Required**: Model files are included in the repository
 
-## 💡 Enable Full AI Features
+## 💡 AI Features Included
 
-To get real AI analysis, place these files in the `models/` folder:
-- `best_model_all_out_v1.pth` (Champion model)
-- `model.pth.tar` (Arnoweng model)
+The repository includes pre-trained models:
+- `best_model_all_out_v1.pth` (Champion model) ✅ Included
+- `model.pth.tar` (Arnoweng model) ✅ Included
+- Optimal thresholds and configurations ✅ Included
 
-Without these files, the app works in demo mode for interface testing.
+**Ready for immediate AI analysis!**
 
 ## ✅ Requirements
 
@@ -46,7 +47,7 @@ Without these files, the app works in demo mode for interface testing.
 ## 🔧 Troubleshooting
 
 **Problem**: App shows "Demo Mode"  
-**Solution**: This is normal! Demo mode lets you test the interface. Place model files in `models/` folder for real AI.
+**Solution**: Make sure you cloned the full repository with model files. If models are missing, re-clone the repository.
 
 **Problem**: Import errors or "DLL load failed"  
 **Solution**: Run `python setup.py` again or use a virtual environment.
