@@ -183,32 +183,19 @@ def initialize_models():
             config = load_config(config_path)
             print("✅ Configuration loaded")
         
-        # Define all possible model paths
+        # Define model paths (simplified)
         model_paths = {
-            'champion_primary': 'models/best_model_all_out_v1.pth',
-            'champion_backup': 'outputs/models/best_model.pth',
-            'champion_kaggle': 'kaggle_outputs/best_model_all_out_v1.pth',
-            'arnoweng_primary': 'models/model.pth.tar',
-            'arnoweng_kaggle': 'kaggle_outputs/model.pth.tar'
+            'champion': 'models/best_model_all_out_v1.pth',
+            'arnoweng': 'models/model.pth.tar'
         }
         
         # Check which models exist
-        available_models = {}
-        for key, path in model_paths.items():
-            if os.path.exists(path):
-                available_models[key] = path
+        champion_path = model_paths['champion'] if os.path.exists(model_paths['champion']) else None
+        arnoweng_path = model_paths['arnoweng'] if os.path.exists(model_paths['arnoweng']) else None
         
         print(f"🔍 Model availability check:")
-        for key, path in model_paths.items():
-            status = "✅ Found" if key in available_models else "❌ Missing"
-            print(f"   {key}: {path} - {status}")
-        
-        # Try to load ensemble model (best option)
-        champion_path = (available_models.get('champion_kaggle') or 
-                        available_models.get('champion_primary') or 
-                        available_models.get('champion_backup'))
-        arnoweng_path = (available_models.get('arnoweng_kaggle') or 
-                        available_models.get('arnoweng_primary'))
+        print(f"   Champion model: {'✅ Found' if champion_path else '❌ Missing'}")
+        print(f"   Arnoweng model: {'✅ Found' if arnoweng_path else '❌ Missing'}")
         
         if champion_path and arnoweng_path:
             try:
