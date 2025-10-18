@@ -31,12 +31,14 @@ python app.py
 
 ## 💡 AI Features Included
 
-The repository includes pre-trained models:
-- `best_model_all_out_v1.pth` (Champion model) ✅ Included
-- `model.pth.tar` (Arnoweng model) ✅ Included
-- Optimal thresholds and configurations ✅ Included
+The repository includes pre-trained models with backup redundancy:
+- `models/best_model_all_out_v1.pth` (Champion model) ✅ Included
+- `models/model.pth.tar` (Arnoweng model) ✅ Included
+- `outputs/models/best_model.pth` (Backup Champion model) ✅ Included
+- `models/optimal_thresholds_ensemble_final.json` (Primary thresholds) ✅ Included
+- `outputs/optimal_thresholds.json` (Backup thresholds) ✅ Included
 
-**Ready for immediate AI analysis!**
+**Ready for immediate AI analysis with multiple fallback paths!**
 
 ## ✅ Requirements
 
