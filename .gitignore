@@ -131,17 +131,21 @@ dmypy.json
 # Project-specific
 data/
 !data/.gitkeep
-outputs/
-!outputs/.gitkeep
+outputs/*
+!outputs/optimal_thresholds.json
+!outputs/models/
+!outputs/models/best_model.pth
 logs/
 *.pth
 !models/*.pth
+!outputs/models/best_model.pth
 *.pkl
 *.h5
 *.hdf5
 *.json
 !configs/*.json
 !models/*.json
+!outputs/optimal_thresholds.json
 *.tar
 !models/*.tar
 
