@@ -139,7 +139,7 @@ def load_optimal_thresholds():
     threshold_paths = [
         'models/optimal_thresholds_ensemble_final.json',
         'models/optimal_thresholds_ensemble_final.csv',
-        'kaggle_outputs/optimal_thresholds_ensemble_final.csv',
+        'models/optimal_thresholds_ensemble_final.csv',
         'outputs/optimal_thresholds.json'
     ]
     
