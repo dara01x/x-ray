@@ -128,26 +128,35 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Project-specific
+# Project-specific directories
 data/
 !data/.gitkeep
+logs/
+
+# Training outputs (ignore everything except essential files)
 outputs/*
 !outputs/optimal_thresholds.json
 !outputs/models/
 !outputs/models/best_model.pth
-logs/
+
+# IMPORTANT: Always include models/ and its contents
+# Override any global ignores for these folders
+!models/
+!models/*
+!models/**/*
+
+# Global file type ignores (but models/ folder overrides these)
 *.pth
-!models/*.pth
-!outputs/models/best_model.pth
-*.pkl
+*.pkl  
 *.h5
 *.hdf5
+*.tar
+
+# JSON files (but include configs and models)
 *.json
 !configs/*.json
 !models/*.json
 !outputs/optimal_thresholds.json
-*.tar
-!models/*.tar
 
 # IDE
 .vscode/
