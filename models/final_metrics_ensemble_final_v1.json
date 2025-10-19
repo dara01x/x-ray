@@ -1,0 +1,36 @@
+{
+    "macro_averaged_auc": 0.8702728515269846,
+    "macro_averaged_f1_score": 0.3710658959832919,
+    "per_class_auc": {
+        "Atelectasis": 0.8507683917505295,
+        "Cardiomegaly": 0.945536306690292,
+        "Effusion": 0.9027955998055747,
+        "Infiltration": 0.7352080112447089,
+        "Mass": 0.8990502119789573,
+        "Nodule": 0.8117895919089654,
+        "Pneumonia": 0.8054588744588744,
+        "Pneumothorax": 0.9144562219924164,
+        "Consolidation": 0.8440007197054292,
+        "Edema": 0.9112196128027625,
+        "Emphysema": 0.940229676779115,
+        "Fibrosis": 0.8444744266221694,
+        "Pleural_Thickening": 0.8320375335120643,
+        "Hernia": 0.9467947421259252
+    },
+    "optimal_thresholds": {
+        "Atelectasis": 0.54,
+        "Cardiomegaly": 0.61,
+        "Effusion": 0.54,
+        "Infiltration": 0.46,
+        "Mass": 0.59,
+        "Nodule": 0.54,
+        "Pneumonia": 0.52,
+        "Pneumothorax": 0.5800000000000001,
+        "Consolidation": 0.54,
+        "Edema": 0.62,
+        "Emphysema": 0.61,
+        "Fibrosis": 0.56,
+        "Pleural_Thickening": 0.55,
+        "Hernia": 0.5800000000000001
+    }
+}

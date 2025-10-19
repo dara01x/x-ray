@@ -1,38 +1,101 @@
-# Core ML libraries
-torch>=2.0.0,<3.0.0
-torchvision>=0.15.0,<1.0.0
-numpy>=1.21.0,<2.0.0
-pandas>=1.3.0,<3.0.0
-scikit-learn>=1.0.0,<2.0.0
+# X-ray AI Web Application - Complete Requirements
+# Install with: pip install -r requirements.txt
+# This file includes ALL dependencies needed for 100% model functionality
 
-# Computer Vision and Medical Imaging
-opencv-python>=4.5.0,<5.0.0
-albumentations>=1.3.0,<2.0.0
+# ========================================
+# CORE WEB FRAMEWORK (Required for web app)
+# ========================================
+Flask>=2.0.0,<3.0.0
+Flask-CORS>=3.0.0,<5.0.0
+Werkzeug>=2.0.0,<3.0.0
+
+# ========================================
+# DEEP LEARNING & AI CORE (Required for models)
+# ========================================
+torch>=2.0.0
+torchvision>=0.15.0
 torchxrayvision>=1.0.0
-grad-cam>=1.4.0
 
-# Visualization
-matplotlib>=3.5.0,<4.0.0
-seaborn>=0.11.0,<1.0.0
+# ========================================
+# NUMERICAL & DATA PROCESSING (Required)
+# ========================================
+numpy>=1.21.0
+pandas>=1.3.0
+scikit-learn>=1.0.0
+scipy>=1.7.0
 
-# Image processing
-Pillow>=8.0.0,<11.0.0
+# ========================================
+# COMPUTER VISION & IMAGE PROCESSING (Required)
+# ========================================
+opencv-python>=4.5.0
+Pillow>=8.0.0
+albumentations>=1.3.0
+scikit-image>=0.19.0
 
-# Progress bars and utilities
+# ========================================
+# CONFIGURATION & UTILITIES (Required)
+# ========================================
+PyYAML>=6.0
+requests>=2.25.0
 tqdm>=4.60.0
+setuptools>=60.0.0
+typing-extensions>=3.10.0
 
-# Configuration
-PyYAML>=6.0,<7.0.0
+# ========================================
+# VISUALIZATION & PLOTTING (Required for evaluation)
+# ========================================
+matplotlib>=3.5.0
+seaborn>=0.11.0
 
-# Testing
-pytest>=7.0.0,<8.0.0
-pytest-cov>=4.0.0,<5.0.0
+# ========================================
+# MEDICAL IMAGING SUPPORT (Required for DICOM)
+# ========================================
+pydicom>=2.0.0
 
-# Optional dependencies
-jupyter>=1.0.0  # Optional: for notebook development
-wandb>=0.15.0   # Optional: for experiment tracking
+# ========================================
+# AI EXPLAINABILITY (Optional - may not work with Python 3.13+)
+# ========================================
+# pytorch-grad-cam>=1.4.0  # For heatmap visualizations
 
-# Development tools (optional)
-black>=22.0.0   # Code formatting
-isort>=5.0.0    # Import sorting
-flake8>=4.0.0   # Linting
+# ========================================
+# TESTING FRAMEWORK (For development)
+# ========================================
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# ========================================
+# ADDITIONAL NOTES
+# ========================================
+# The following are included with the packages above:
+# - collections.OrderedDict (Python standard library)
+# - datetime (Python standard library)
+# - json (Python standard library)
+# - os (Python standard library)
+# - sys (Python standard library)
+# - time (Python standard library)
+# - traceback (Python standard library)
+# - uuid (Python standard library)
+# - pathlib (Python standard library)
+# - argparse (Python standard library)
+# - typing (Python standard library)
+#
+# PyTorch includes:
+# - torch.nn (neural networks)
+# - torch.optim (optimizers)
+# - torch.optim.lr_scheduler (learning rate schedulers)
+# - torch.cuda.amp (mixed precision training)
+# - torch.utils.data (data loading utilities)
+#
+# scikit-learn includes:
+# - sklearn.metrics (evaluation metrics)
+# - sklearn.model_selection (data splitting)
+#
+# torchvision includes:
+# - torchvision.transforms (image transformations)
+#
+# albumentations includes:
+# - albumentations.pytorch (PyTorch integration)
+#
+# Werkzeug includes:
+# - werkzeug.utils (file utilities)
+# - werkzeug.exceptions (HTTP exceptions)
