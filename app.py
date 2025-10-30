@@ -23,14 +23,18 @@ import torch
 from flask import Flask, render_template, request, jsonify, send_from_directory, flash, redirect, url_for
 from flask_cors import CORS
 
-# Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# Add src to path for imports
+import sys
+from pathlib import Path
+src_path = Path(__file__).parent / 'src'
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 # Import custom modules
 try:
-    from utils import load_config, get_device
-    from models.ensemble_model import load_ensemble_model
-    from scripts.inference import ChestXrayPredictor
+    from utils import load_config, get_device  # type: ignore
+    from models.ensemble_model import load_ensemble_model  # type: ignore
+    from scripts.inference import ChestXrayPredictor  # type: ignore
     print("✅ All modules imported successfully")
 except ImportError as e:
     print(f"Import error: {e}")
@@ -284,12 +288,16 @@ def process_image(image_path: str) -> Dict:
                 print(f"📈 Ensemble prediction result: {result is not None}")
                 
                 if result:
+                    # Arnoweng-only diseases
+                    arnoweng_only_diseases = ['Pneumothorax', 'Pneumonia', 'Consolidation']
+                    
                     predictions = {}
                     positive_count = 0
                     for disease, pred_data in result['predictions'].items():
                         ensemble_prob = pred_data['ensemble_prob']
                         threshold_used = pred_data['threshold_used']
                         is_positive = pred_data['prediction']
+                        model_used = pred_data.get('model_used', 'ensemble')
                         
                         if is_positive:
                             positive_count += 1
@@ -304,14 +312,29 @@ def process_image(image_path: str) -> Dict:
                         else:
                             confidence = 'Low'
                         
-                        predictions[disease] = {
-                            'probability': ensemble_prob,
-                            'prediction': is_positive,
-                            'threshold': threshold_used,
-                            'confidence': confidence,
-                            'champion_prob': pred_data['champion_prob'],
-                            'arnoweng_prob': pred_data['arnoweng_prob']
-                        }
+                        # For Arnoweng-only diseases, only show Arnoweng probability
+                        if disease in arnoweng_only_diseases:
+                            predictions[disease] = {
+                                'probability': ensemble_prob,
+                                'prediction': is_positive,
+                                'threshold': threshold_used,
+                                'confidence': confidence,
+                                'arnoweng_prob': pred_data['arnoweng_prob'],
+                                'model_used': 'arnoweng_only',
+                                'note': 'Predicted by Model B only'
+                            }
+                        else:
+                            # For ensemble diseases, show both model probabilities
+                            predictions[disease] = {
+                                'probability': ensemble_prob,
+                                'prediction': is_positive,
+                                'threshold': threshold_used,
+                                'confidence': confidence,
+                                'champion_prob': pred_data['champion_prob'],
+                                'arnoweng_prob': pred_data['arnoweng_prob'],
+                                'model_used': 'ensemble',
+                                'note': 'Ensemble prediction (Champion + Arnoweng)'
+                            }
                     
                     positive_findings = ensemble_model.get_positive_predictions(result)
                     if not positive_findings:
@@ -329,7 +352,8 @@ def process_image(image_path: str) -> Dict:
                             'positive_findings_count': positive_count,
                             'model_confidence': 'High' if positive_count <= 2 else 'Moderate',
                             'optimal_thresholds_used': True
-                        }
+                        },
+                        'arnoweng_only_diseases': arnoweng_only_diseases
                     }
                 else:
                     print("❌ Ensemble model returned None result")

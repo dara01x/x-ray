@@ -1314,6 +1314,29 @@ body {
     font-size: var(--font-size-xs);
 }
 
+/* Arnoweng-only model styling */
+.model-breakdown.arnoweng-only {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #38bdf8;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-3);
+    margin-top: var(--spacing-3);
+}
+
+.model-breakdown.arnoweng-only small {
+    display: block;
+    color: #0369a1;
+    font-weight: 500;
+}
+
+.model-breakdown.arnoweng-only .model-note {
+    display: block;
+    margin-top: var(--spacing-1);
+    font-size: 0.7rem;
+    color: #0284c7;
+    font-style: italic;
+}
+
 .confidence-bar {
     position: relative;
     height: 8px;

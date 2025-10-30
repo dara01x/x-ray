@@ -50,7 +50,13 @@ class Evaluator:
                 if batch_data is None:
                     continue
                 
-                images, labels = batch_data
+                # Handle both dict and tuple formats
+                if isinstance(batch_data, dict):
+                    images = batch_data['image']
+                    labels = batch_data['labels']
+                else:
+                    images, labels = batch_data
+                    
                 images = images.to(device, non_blocking=True)
                 labels = labels.to(device, non_blocking=True)
                 
@@ -141,7 +147,13 @@ class Evaluator:
                 if batch_data is None:
                     continue
                 
-                images, labels = batch_data
+                # Handle both dict and tuple formats
+                if isinstance(batch_data, dict):
+                    images = batch_data['image']
+                    labels = batch_data['labels']
+                else:
+                    images, labels = batch_data
+                    
                 images = images.to(device, non_blocking=True)
                 labels = labels.to(device, non_blocking=True)
                 
@@ -201,7 +213,13 @@ class Evaluator:
                 if batch_data is None:
                     continue
                 
-                images, labels = batch_data
+                # Handle both dict and tuple formats
+                if isinstance(batch_data, dict):
+                    images = batch_data['image']
+                    labels = batch_data['labels']
+                else:
+                    images, labels = batch_data
+                    
                 images = images.to(device, non_blocking=True)
                 
                 outputs = model(images)
@@ -227,7 +245,14 @@ class Evaluator:
             zero_division=0
         )
         
-        return report
+        # Ensure we return a string
+        if isinstance(report, dict):
+            # Convert dict to formatted string
+            report_str = "Classification Report:\n"
+            for key, value in report.items():
+                report_str += f"{key}: {value}\n"
+            return report_str
+        return str(report)
     
     def plot_confusion_matrices(self, model: torch.nn.Module, data_loader,
                                device: torch.device, thresholds: Dict[str, float],
@@ -253,7 +278,13 @@ class Evaluator:
                 if batch_data is None:
                     continue
                 
-                images, labels = batch_data
+                # Handle both dict and tuple formats
+                if isinstance(batch_data, dict):
+                    images = batch_data['image']
+                    labels = batch_data['labels']
+                else:
+                    images, labels = batch_data
+                    
                 images = images.to(device, non_blocking=True)
                 
                 outputs = model(images)
