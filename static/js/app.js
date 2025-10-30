@@ -429,17 +429,30 @@ class ChestXrayApp {
             const isPositive = data.prediction === 1;
             const confidence = data.confidence || 'Medium';
             const threshold = data.threshold * 100;
+            const modelUsed = data.model_used || 'ensemble';
             
             let probabilityClass = 'low';
             if (probability > 70) probabilityClass = 'high';
             else if (probability > 50) probabilityClass = 'medium';
             
             // Enhanced card with individual model probabilities if available
-            const individualModelsInfo = data.champion_prob && data.arnoweng_prob ? `
-                <div class="model-breakdown">
-                    <small>Champion: ${(data.champion_prob * 100).toFixed(1)}% | Arnoweng: ${(data.arnoweng_prob * 100).toFixed(1)}%</small>
-                </div>
-            ` : '';
+            let individualModelsInfo = '';
+            if (modelUsed === 'arnoweng_only') {
+                // For Arnoweng-only diseases, show only Model B
+                individualModelsInfo = `
+                    <div class="model-breakdown arnoweng-only">
+                        <small><strong>⭐ Model B:</strong> ${(data.arnoweng_prob * 100).toFixed(1)}%</small>
+                        <small class="model-note">Predicted by Model B only</small>
+                    </div>
+                `;
+            } else if (data.champion_prob && data.arnoweng_prob) {
+                // For ensemble diseases, show both models with generic names
+                individualModelsInfo = `
+                    <div class="model-breakdown">
+                        <small>Model A: ${(data.champion_prob * 100).toFixed(1)}% | Model B: ${(data.arnoweng_prob * 100).toFixed(1)}%</small>
+                    </div>
+                `;
+            }
             
             card.innerHTML = `
                 <div class="result-header">

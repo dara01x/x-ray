@@ -11,7 +11,7 @@ import os
 import json
 import numpy as np
 from collections import OrderedDict
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Union
 import cv2
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
@@ -26,10 +26,12 @@ class ChampionModel(nn.Module):
         super(ChampionModel, self).__init__()
         # Use the same architecture as in the notebook
         self.backbone = xrv.models.DenseNet(weights="densenet121-res224-all")
-        self.backbone.op_threshs = None
+        # Use setattr to bypass type checking for dynamic attributes
+        setattr(self.backbone, 'op_threshs', None)
         
         num_features = self.backbone.classifier.in_features
-        self.backbone.classifier = nn.Identity()
+        # Replace classifier with Identity layer
+        setattr(self.backbone, 'classifier', nn.Identity())
         
         # Deeper head architecture from the notebook
         self.head = nn.Sequential(
@@ -52,10 +54,11 @@ class ArnowengDenseNet121(nn.Module):
         super(ArnowengDenseNet121, self).__init__()
         self.densenet121 = torchvision.models.densenet121(pretrained=True)
         num_ftrs = self.densenet121.classifier.in_features
-        self.densenet121.classifier = nn.Sequential(
+        # Replace classifier with custom Sequential
+        setattr(self.densenet121, 'classifier', nn.Sequential(
             nn.Linear(num_ftrs, out_size),
             nn.Sigmoid()
-        )
+        ))
 
     def forward(self, x):
         x = self.densenet121(x)
@@ -163,7 +166,7 @@ class EnsembleModel:
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
         
-    def predict_single_image(self, image_path: str, use_optimal_thresholds: bool = True) -> Dict:
+    def predict_single_image(self, image_path: str, use_optimal_thresholds: bool = True) -> Optional[Dict]:
         """
         Make ensemble prediction on a single image.
         
@@ -175,6 +178,9 @@ class EnsembleModel:
             Dictionary with predictions from both models and ensemble
         """
         try:
+            # Diseases that should ONLY use Arnoweng model (no ensemble)
+            arnoweng_only_diseases = ['Pneumothorax', 'Pneumonia', 'Consolidation']
+            
             # Get prediction from champion model
             champion_probs = self._predict_champion(image_path)
             
@@ -182,6 +188,7 @@ class EnsembleModel:
             arnoweng_probs = self._predict_arnoweng(image_path)
             
             # Calculate ensemble probabilities (simple average)
+            # But for Arnoweng-only diseases, use only Arnoweng predictions
             ensemble_probs = (champion_probs + arnoweng_probs) / 2.0
             
             # Prepare results
@@ -198,13 +205,28 @@ class EnsembleModel:
             
             for i, disease in enumerate(self.disease_labels):
                 threshold = thresholds.get(disease, 0.5)
-                results['predictions'][disease] = {
-                    'champion_prob': float(champion_probs[i]),
-                    'arnoweng_prob': float(arnoweng_probs[i]),
-                    'ensemble_prob': float(ensemble_probs[i]),
-                    'prediction': int(ensemble_probs[i] >= threshold),
-                    'threshold_used': threshold
-                }
+                
+                # For Arnoweng-only diseases, use ONLY Arnoweng predictions
+                if disease in arnoweng_only_diseases:
+                    final_prob = float(arnoweng_probs[i])
+                    results['predictions'][disease] = {
+                        'champion_prob': float(champion_probs[i]),
+                        'arnoweng_prob': float(arnoweng_probs[i]),
+                        'ensemble_prob': final_prob,  # Use Arnoweng only
+                        'prediction': int(final_prob >= threshold),
+                        'threshold_used': threshold,
+                        'model_used': 'arnoweng_only'
+                    }
+                else:
+                    # For other diseases, use ensemble averaging
+                    results['predictions'][disease] = {
+                        'champion_prob': float(champion_probs[i]),
+                        'arnoweng_prob': float(arnoweng_probs[i]),
+                        'ensemble_prob': float(ensemble_probs[i]),
+                        'prediction': int(ensemble_probs[i] >= threshold),
+                        'threshold_used': threshold,
+                        'model_used': 'ensemble'
+                    }
                 
             return results
             
@@ -233,7 +255,9 @@ class EnsembleModel:
         """Get prediction from Arnoweng model."""
         # Load and preprocess image
         image = Image.open(image_path).convert("RGB")
-        tensor = self.arnoweng_transform(image).unsqueeze(0).to(self.device)
+        # Transform returns a tensor, not an Image
+        tensor_img: torch.Tensor = self.arnoweng_transform(image)  # type: ignore
+        tensor = tensor_img.unsqueeze(0).to(self.device)
         
         # Get prediction (Arnoweng model outputs probabilities directly)
         with torch.no_grad():

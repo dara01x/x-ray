@@ -88,11 +88,22 @@ class Trainer:
         
         # Initialize mixed precision scaler (updated for newer PyTorch)
         try:
-            from torch.amp import GradScaler as NewGradScaler
+            from torch.amp.grad_scaler import GradScaler as NewGradScaler
             self.scaler = NewGradScaler('cuda', enabled=config['hardware']['mixed_precision'])
-        except ImportError:
+        except (ImportError, AttributeError):
             # Fallback for older PyTorch versions
-            self.scaler = GradScaler(enabled=config['hardware']['mixed_precision'])
+            try:
+                from torch.cuda.amp import GradScaler
+                self.scaler = GradScaler(enabled=config['hardware']['mixed_precision'])
+            except ImportError:
+                # Final fallback - no mixed precision
+                class DummyScaler:
+                    def scale(self, loss): return loss
+                    def step(self, optimizer): optimizer.step()
+                    def update(self): pass
+                    def state_dict(self): return {}
+                    def load_state_dict(self, state_dict): pass
+                self.scaler = DummyScaler()
         
         # Training state
         self.best_metric = -float('inf')
@@ -135,7 +146,13 @@ class Trainer:
             if batch_data is None:
                 continue
             
-            images, labels = batch_data
+            # Handle both dict and tuple formats
+            if isinstance(batch_data, dict):
+                images = batch_data['image']
+                labels = batch_data['labels']
+            else:
+                images, labels = batch_data
+                
             images = images.to(self.device, non_blocking=True)
             labels = labels.to(self.device, non_blocking=True)
             
