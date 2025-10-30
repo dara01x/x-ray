@@ -198,8 +198,8 @@ def initialize_models():
         arnoweng_path = model_paths['arnoweng'] if os.path.exists(model_paths['arnoweng']) else None
         
         print(f"🔍 Model availability check:")
-        print(f"   Champion model: {'✅ Found' if champion_path else '❌ Missing'}")
-        print(f"   Arnoweng model: {'✅ Found' if arnoweng_path else '❌ Missing'}")
+        print(f"   Model A: {'✅ Found' if champion_path else '❌ Missing'}")
+        print(f"   Model B: {'✅ Found' if arnoweng_path else '❌ Missing'}")
         
         if champion_path and arnoweng_path:
             try:
@@ -216,15 +216,15 @@ def initialize_models():
                     ensemble_thresholds=thresholds_json
                 )
                 print("🎉 Ensemble model loaded successfully!")
-                print(f"📊 Champion model: {champion_path}")
-                print(f"📊 Arnoweng model: {arnoweng_path}")
+                print(f"📊 Model A: {champion_path}")
+                print(f"📊 Model B: {arnoweng_path}")
                 print(f"📊 Model info: {ensemble_model.get_model_info()}")
                 return 'ensemble'
             except Exception as e:
                 print(f"❌ Failed to load ensemble model: {e}")
                 traceback.print_exc()
         
-        # Try single champion model
+        # Try single Model A
         if config and champion_path:
             try:
                 thresholds_json = 'outputs/optimal_thresholds.json'
@@ -234,11 +234,11 @@ def initialize_models():
                     checkpoint_path=champion_path,
                     thresholds_path=thresholds_path
                 )
-                print("✅ Single champion model loaded successfully!")
+                print("✅ Single Model A loaded successfully!")
                 print(f"📊 Model path: {champion_path}")
                 return 'single'
             except Exception as e:
-                print(f"❌ Failed to load champion model: {e}")
+                print(f"❌ Failed to load Model A: {e}")
                 traceback.print_exc()
         
         # Show detailed error information for demo mode
@@ -256,8 +256,8 @@ def initialize_models():
         print("\n📥 TO ENABLE FULL FUNCTIONALITY:")
         print("1. Obtain trained model files from original training environment")
         print("2. Place them in the correct directories:")
-        print("   - Champion model → models/best_model_all_out_v1.pth")
-        print("   - Arnoweng model → models/model.pth.tar")
+        print("   - Model A → models/best_model_all_out_v1.pth")
+        print("   - Model B → models/model.pth.tar")
         print("   - Or in kaggle_outputs/ directory")
         print("3. Run: python verify_setup.py")
         print("4. Look for success message: '🎉 Setup complete!'")
@@ -288,7 +288,7 @@ def process_image(image_path: str) -> Dict:
                 print(f"📈 Ensemble prediction result: {result is not None}")
                 
                 if result:
-                    # Arnoweng-only diseases
+                    # Model B-only diseases
                     arnoweng_only_diseases = ['Pneumothorax', 'Pneumonia', 'Consolidation']
                     
                     predictions = {}
@@ -312,7 +312,7 @@ def process_image(image_path: str) -> Dict:
                         else:
                             confidence = 'Low'
                         
-                        # For Arnoweng-only diseases, only show Arnoweng probability
+                        # For Model B-only diseases, only show Model B probability
                         if disease in arnoweng_only_diseases:
                             predictions[disease] = {
                                 'probability': ensemble_prob,
@@ -333,7 +333,7 @@ def process_image(image_path: str) -> Dict:
                                 'champion_prob': pred_data['champion_prob'],
                                 'arnoweng_prob': pred_data['arnoweng_prob'],
                                 'model_used': 'ensemble',
-                                'note': 'Ensemble prediction (Champion + Arnoweng)'
+                                'note': 'Ensemble prediction (Model A + Model B)'
                             }
                     
                     positive_findings = ensemble_model.get_positive_predictions(result)
@@ -344,7 +344,7 @@ def process_image(image_path: str) -> Dict:
                     
                     return {
                         'success': True,
-                        'model_type': 'Ensemble (Champion + Arnoweng)',
+                        'model_type': 'Ensemble (Model A + Model B)',
                         'predictions': predictions,
                         'positive_findings': positive_findings,
                         'summary': {
@@ -368,7 +368,7 @@ def process_image(image_path: str) -> Dict:
                 traceback.print_exc()
         
         elif predictor:
-            print("📊 Using single champion model for prediction...")
+            print("📊 Using single Model A for prediction...")
             try:
                 result = predictor.predict_single_image(image_path)
                 if result:
@@ -407,7 +407,7 @@ def process_image(image_path: str) -> Dict:
                     
                     return {
                         'success': True,
-                        'model_type': 'Single Champion Model',
+                        'model_type': 'Single Model A',
                         'predictions': predictions,
                         'positive_findings': positive_findings,
                         'summary': {
@@ -559,11 +559,11 @@ def get_status():
     # Check for missing model files
     missing_files = []
     model_paths = {
-        'Champion model (primary)': 'models/best_model_all_out_v1.pth',
-        'Champion model (backup)': 'outputs/models/best_model.pth',
-        'Champion model (kaggle)': 'kaggle_outputs/best_model_all_out_v1.pth',
-        'Arnoweng model (primary)': 'models/model.pth.tar',
-        'Arnoweng model (kaggle)': 'kaggle_outputs/model.pth.tar'
+        'Model A (primary)': 'models/best_model_all_out_v1.pth',
+        'Model A (backup)': 'outputs/models/best_model.pth',
+        'Model A (kaggle)': 'kaggle_outputs/best_model_all_out_v1.pth',
+        'Model B (primary)': 'models/model.pth.tar',
+        'Model B (kaggle)': 'kaggle_outputs/model.pth.tar'
     }
     
     for name, path in model_paths.items():
